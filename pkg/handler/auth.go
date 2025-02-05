@@ -32,7 +32,7 @@ func (h *Handler) signUp(c *gin.Context) {
 }
 
 type signInInput struct {
-	Username string `json:"username" binding:"required"`
+	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
@@ -43,7 +43,7 @@ func (h *Handler) signIn(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, err.Error()) // Error 400. Пользователь предоставил некорректные данные.
 		return
 	}
-	token, err := h.services.Authorization.GenerateToken(input.Username, input.Password)
+	token, err := h.services.Authorization.GenerateToken(input.Email, input.Password)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error()) // Error 500. Внутренняя ошибка на сервере.
 		return

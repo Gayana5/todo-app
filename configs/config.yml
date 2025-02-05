@@ -5,4 +5,4 @@ db:
   host: "postgres"
   port: "5432"
   dbname: "postgres"
-  sslmode: "require"
+  sslmode: "disable"

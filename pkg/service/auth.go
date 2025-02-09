@@ -7,6 +7,7 @@ import (
 	"github.com/Gayana5/todo-app"
 	"github.com/Gayana5/todo-app/pkg/repository"
 	"github.com/dgrijalva/jwt-go"
+	"math/rand"
 	"time"
 )
 
@@ -69,4 +70,8 @@ func (s *AuthService) generatePasswordHash(password string) string {
 	hash.Write([]byte(password))
 
 	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
+}
+
+func (s *AuthService) GenerateCode() string {
+	return fmt.Sprintf("%04d", rand.Intn(10000))
 }

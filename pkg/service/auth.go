@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	salt       = "ncuewfr53567njwejk95"
-	signingKey = "hfwoiujr8420#fiopsrUHfewijfHe"
+	salt       = ""
+	signingKey = ""
 	tokenTTL   = 12 * time.Hour
 )
 

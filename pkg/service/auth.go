@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	salt       = ""
-	signingKey = ""
+	salt       = "ncuewfr53567njwejk95"
+	signingKey = "hfwoiujr8420#fiopsrUHfewijfHe"
 	tokenTTL   = 12 * time.Hour
 )
 
@@ -34,8 +34,8 @@ func (s *AuthService) CreateUser(user todo.User) (int, error) {
 	user.Password = s.generatePasswordHash(user.Password)
 	return s.repo.CreateUser(user)
 }
-func (s *AuthService) GenerateToken(username, password string) (string, error) {
-	user, err := s.repo.GetUser(username, s.generatePasswordHash(password))
+func (s *AuthService) GenerateToken(email, password string) (string, error) {
+	user, err := s.repo.GetUser(email, s.generatePasswordHash(password))
 	if err != nil {
 		return "", err
 	}

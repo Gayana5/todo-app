@@ -4,6 +4,7 @@ import (
 	"github.com/Gayana5/todo-app"
 	_ "github.com/Gayana5/todo-app"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"regexp"
 	"sync"
@@ -18,9 +19,20 @@ func (h *Handler) signUp(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Некорректные данные"})
 		return
 	}
+	exists, err := h.repo.UserExists(input.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка проверки пользователя"})
+		return
+	}
+	if exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Пользователь с такой почтой уже существует"})
+		return
+	}
 
 	code := h.services.Authorization.GenerateCode()
+
 	if err := sendCodeToEmail(input.Email, code); err != nil {
+		log.Println("Ошибка отправки кода:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось отправить код"})
 		return
 	}
@@ -52,6 +64,7 @@ func (h *Handler) verifyCode(c *gin.Context) {
 	}
 	if storedCode.ExpiresAt.Before(time.Now()) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Срок действия кода истек"})
+		return
 	}
 
 	if storedCode.Code != input.Code {

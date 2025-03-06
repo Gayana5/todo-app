@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"github.com/Gayana5/todo-app/pkg/repository"
 	"github.com/Gayana5/todo-app/pkg/service"
 	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
 	services *service.Service
+	repo     repository.Authorization
 }
 
 func NewHandler(services *service.Service) *Handler {

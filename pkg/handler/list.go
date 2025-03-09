@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func (h *Handler) createList(c *gin.Context) {
+func (h *Handler) createGoal(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
 		return
@@ -17,7 +17,7 @@ func (h *Handler) createList(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	id, err := h.services.TodoList.Create(userId, input)
+	id, err := h.services.TodoGoal.Create(userId, input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -27,26 +27,26 @@ func (h *Handler) createList(c *gin.Context) {
 	})
 }
 
-type getAllListsResponse struct {
+type getAllGoalsResponse struct {
 	Data []todo.TodoList `json:"data"`
 }
 
-func (h *Handler) getAllLList(c *gin.Context) {
+func (h *Handler) getAllGoals(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
 		return
 	}
-	lists, err := h.services.TodoList.GetAll(userId)
+	lists, err := h.services.TodoGoal.GetAll(userId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, getAllListsResponse{
+	c.JSON(http.StatusOK, getAllGoalsResponse{
 		Data: lists,
 	})
 }
-func (h *Handler) getListById(c *gin.Context) {
+func (h *Handler) getGoalById(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
 		return
@@ -57,7 +57,7 @@ func (h *Handler) getListById(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, "invalid id")
 		return
 	}
-	list, err := h.services.TodoList.GetById(userId, id)
+	list, err := h.services.TodoGoal.GetById(userId, id)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -65,7 +65,7 @@ func (h *Handler) getListById(c *gin.Context) {
 
 	c.JSON(http.StatusOK, list)
 }
-func (h *Handler) updateList(c *gin.Context) {
+func (h *Handler) updateGoal(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
 		return
@@ -77,20 +77,20 @@ func (h *Handler) updateList(c *gin.Context) {
 		return
 	}
 
-	var input todo.UpdateListInput
+	var input todo.UpdateGoalInput
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if err := h.services.TodoList.Update(userId, id, input); err != nil {
+	if err := h.services.TodoGoal.Update(userId, id, input); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	c.JSON(http.StatusOK, statusResponse{"ok"})
 }
-func (h *Handler) deleteList(c *gin.Context) {
+func (h *Handler) deleteGoal(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
 		return
@@ -101,7 +101,7 @@ func (h *Handler) deleteList(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, "invalid id")
 		return
 	}
-	err = h.services.TodoList.Delete(userId, id)
+	err = h.services.TodoGoal.Delete(userId, id)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return

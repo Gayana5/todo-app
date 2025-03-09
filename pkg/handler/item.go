@@ -10,12 +10,12 @@ import (
 func (h *Handler) createItem(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid list id parameter")
+		newErrorResponse(c, http.StatusBadRequest, "invalid goal id parameter")
 		return
 	}
 	listId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid list id parameter")
+		newErrorResponse(c, http.StatusBadRequest, "invalid goal id parameter")
 		return
 	}
 	var input todo.TodoItem
@@ -38,7 +38,7 @@ func (h *Handler) createItem(c *gin.Context) {
 func (h *Handler) getAllItems(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid list id parameter")
+		newErrorResponse(c, http.StatusBadRequest, "invalid goal id parameter")
 		return
 	}
 	listId, err := strconv.Atoi(c.Param("id"))
@@ -56,7 +56,7 @@ func (h *Handler) getAllItems(c *gin.Context) {
 func (h *Handler) getItemById(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid list id parameter")
+		newErrorResponse(c, http.StatusBadRequest, "invalid goal id parameter")
 		return
 	}
 	itemId, err := strconv.Atoi(c.Param("id"))
@@ -99,12 +99,12 @@ func (h *Handler) updateItem(c *gin.Context) {
 func (h *Handler) deleteItem(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid list id parameter")
+		newErrorResponse(c, http.StatusBadRequest, "invalid goal id parameter")
 		return
 	}
 	itemId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid list id parameter")
+		newErrorResponse(c, http.StatusBadRequest, "invalid goal id parameter")
 		return
 	}
 	err = h.services.TodoItem.Delete(userId, itemId)

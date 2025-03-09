@@ -1,6 +1,9 @@
 package todo
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 type TodoList struct {
 	Id          int    `json:"id" db:"id"`
@@ -8,29 +11,38 @@ type TodoList struct {
 	Description string `json:"description" db:"description"`
 }
 
-type UsersList struct {
+type UsersGoals struct {
 	Id     int
 	UserId int
 	ListId int
 }
 type TodoItem struct {
-	Id          int    `json:"id" db:"id"`
-	Title       string `json:"title" db:"title" binding:"required"`
-	Description string `json:"description" db:"description"`
-	Done        bool   `json:"done" db:"done"`
+	Id          int       `json:"id" db:"id"`
+	Title       string    `json:"title" db:"title" binding:"required"`
+	Description string    `json:"description" db:"description"`
+	Date        time.Time `json:"date" db:"date" binding:"required"`
+	StartTime   time.Time `json:"start_time" db:"start_time"`
+	EndTime     time.Time `json:"end_time" db:"end_time"`
+	Priority    bool      `json:"priority" db:"priority" binding:"required"`
+	Done        bool      `json:"done" db:"done"`
 }
-type ListsItem struct {
-	Id     int
-	ListId int
-	ItemId int
+type GoalsItem struct {
+	Id          int       `json:"id" db:"id"`
+	Title       string    `json:"title" db:"title" binding:"required"`
+	Description string    `json:"description" db:"description"`
+	Date        time.Time `json:"date" db:"date" binding:"required"`
+	StartTime   time.Time `json:"start_time" db:"start_time"`
+	EndTime     time.Time `json:"end_time" db:"end_time"`
+	Priority    bool      `json:"priority" db:"priority" binding:"required"`
+	Done        bool      `json:"done" db:"done"`
 }
 
-type UpdateListInput struct {
+type UpdateGoalInput struct {
 	Title       *string `json:"title"`
 	Description *string `json:"description"`
 }
 
-func (i UpdateListInput) Validate() error {
+func (i UpdateGoalInput) Validate() error {
 	if i.Title == nil && i.Description == nil {
 		return errors.New("update structure has no values")
 	}
@@ -38,9 +50,13 @@ func (i UpdateListInput) Validate() error {
 }
 
 type UpdateItemInput struct {
-	Title       *string `json:"title"`
-	Description *string `json:"description"`
-	Done        *bool   `json:"done"`
+	Title       *string    `json:"title"`
+	Description *string    `json:"description"`
+	Date        *time.Time `json:"date" db:"date"`
+	StartTime   *time.Time `json:"start_time" db:"start_time"`
+	EndTime     *time.Time `json:"end_time" db:"end_time"`
+	Priority    *bool      `json:"priority" db:"priority"`
+	Done        *bool      `json:"done" db:"done"`
 }
 
 func (i UpdateItemInput) Validate() error {

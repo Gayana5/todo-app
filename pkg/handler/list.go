@@ -12,7 +12,7 @@ func (h *Handler) createGoal(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	var input todo.TodoList
+	var input todo.TodoGoal
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
@@ -28,7 +28,7 @@ func (h *Handler) createGoal(c *gin.Context) {
 }
 
 type getAllGoalsResponse struct {
-	Data []todo.TodoList `json:"data"`
+	Data []todo.TodoGoal `json:"data"`
 }
 
 func (h *Handler) getAllGoals(c *gin.Context) {

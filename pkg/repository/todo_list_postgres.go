@@ -16,15 +16,15 @@ func NewTodoListPostgres(db *sqlx.DB) *TodoGoalPostgres {
 	return &TodoGoalPostgres{db: db}
 }
 
-func (r *TodoGoalPostgres) Create(userId int, list todo.TodoList) (int, error) {
+func (r *TodoGoalPostgres) Create(userId int, list todo.TodoGoal) (int, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return 0, err
 	}
 
 	var id int
-	createListQuery := fmt.Sprintf("INSERT INTO %s (title, description) VALUES ($1, $2) RETURNING id", todoListsTable)
-	row := tx.QueryRow(createListQuery, list.Title, list.Description)
+	createListQuery := fmt.Sprintf("INSERT INTO %s (title, description, end_date) VALUES ($1, $2, $3) RETURNING id", todoListsTable)
+	row := tx.QueryRow(createListQuery, list.Title, list.Description, list.EndDate)
 	if err := row.Scan(&id); err != nil {
 		tx.Rollback()
 		return 0, err
@@ -38,8 +38,8 @@ func (r *TodoGoalPostgres) Create(userId int, list todo.TodoList) (int, error) {
 	}
 	return id, tx.Commit()
 }
-func (r *TodoGoalPostgres) GetAll(userId int) ([]todo.TodoList, error) {
-	var lists []todo.TodoList
+func (r *TodoGoalPostgres) GetAll(userId int) ([]todo.TodoGoal, error) {
+	var lists []todo.TodoGoal
 
 	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description FROM %s tl INNER JOIN %s ul on tl.id = ul.list_id WHERE ul.user_id = $1",
 		todoListsTable, usersListsTable)
@@ -48,8 +48,8 @@ func (r *TodoGoalPostgres) GetAll(userId int) ([]todo.TodoList, error) {
 	return lists, err
 }
 
-func (r *TodoGoalPostgres) GetById(userId, listId int) (todo.TodoList, error) {
-	var list todo.TodoList
+func (r *TodoGoalPostgres) GetById(userId, listId int) (todo.TodoGoal, error) {
+	var list todo.TodoGoal
 
 	query := fmt.Sprintf(`SELECT tl.id, tl.title, tl.description FROM %s tl 
                                        INNER JOIN %s ul on tl.id = ul.list_id WHERE ul.user_id = $1 AND ul.list_id = $2`,
@@ -79,14 +79,20 @@ func (r *TodoGoalPostgres) Update(userId, listId int, input todo.UpdateGoalInput
 		args = append(args, *input.Description)
 		argId++
 	}
+	if input.EndDate != nil {
+		setValues = append(setValues, fmt.Sprintf("end_date=$%d", argId))
+		args = append(args, *input.EndDate)
+		argId++
+	}
 
 	// title = $1
 	// description = $1
-	// title = $1, description = $2
+	// end_date = $1
+	// title = $1, description = $2, end_date = $3
 	setQuery := strings.Join(setValues, ", ")
 
-	query := fmt.Sprintf("UPDATE %s tl SET %s FROM %s ul WHERE tl.id = ul.list_id AND ul.list_id = $%d AND ul.user_id = $%d",
-		todoListsTable, setQuery, usersListsTable, argId, argId+1)
+	query := fmt.Sprintf("UPDATE %s tl SET %s FROM %s ul WHERE tl.id = ul.list_id AND ul.list_id = $1 AND ul.user_id = $2",
+		todoListsTable, setQuery, usersListsTable)
 	args = append(args, listId, userId)
 
 	logrus.Debugf("updateQuery: %s", query)

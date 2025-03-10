@@ -4,7 +4,6 @@ import (
 	"github.com/Gayana5/todo-app"
 	_ "github.com/Gayana5/todo-app"
 	"github.com/gin-gonic/gin"
-	"log"
 	"net/http"
 	"regexp"
 	"sync"
@@ -19,30 +18,45 @@ func (h *Handler) signUp(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Некорректные данные"})
 		return
 	}
-	exists, err := h.repo.UserExists(input.Email)
+	/*
+			exists, err := h.repo.UserExists(input.Email)
+
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка проверки пользователя"})
+				return
+			}
+			if exists {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Пользователь с такой почтой уже существует"})
+				return
+			}
+
+			code := h.services.Authorization.GenerateCode()
+
+			if err := sendCodeToEmail(input.Email, code); err != nil {
+				log.Println("Ошибка отправки кода:", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось отправить код"})
+				return
+			}
+
+			mu.Lock()
+			verificationCodes[input.Email] = VerificationCode{
+				Code:      code,
+				ExpiresAt: time.Now().Add(10 * time.Minute),
+			}
+			mu.Unlock()
+		c.JSON(http.StatusOK, gin.H{"message": "Код подтверждения отправлен на вашу почту."})
+	*/
+	id, err := h.services.Authorization.CreateUser(input)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка проверки пользователя"})
-		return
-	}
-	if exists {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Пользователь с такой почтой уже существует"})
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	code := h.services.Authorization.GenerateCode()
-
-	if err := sendCodeToEmail(input.Email, code); err != nil {
-		log.Println("Ошибка отправки кода:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось отправить код"})
-		return
-	}
-
-	mu.Lock()
-	verificationCodes[input.Email] = VerificationCode{Code: code, ExpiresAt: time.Now().Add(10 * time.Minute)}
-	mu.Unlock()
-
-	c.JSON(http.StatusOK, gin.H{"message": "Код подтверждения отправлен на вашу почту."})
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"id": id,
+	})
 }
+
 func (h *Handler) verifyCode(c *gin.Context) {
 	var input struct {
 		Email string `json:"email"`

@@ -11,9 +11,9 @@ type Authorization interface {
 	UserExists(email string) (bool, error)
 }
 type TodoGoal interface {
-	Create(userId int, list todo.TodoList) (int, error)
-	GetAll(userId int) ([]todo.TodoList, error)
-	GetById(userId, listId int) (todo.TodoList, error)
+	Create(userId int, list todo.TodoGoal) (int, error)
+	GetAll(userId int) ([]todo.TodoGoal, error)
+	GetById(userId, listId int) (todo.TodoGoal, error)
 	Delete(userId, listId int) error
 	Update(userId, listId int, input todo.UpdateGoalInput) error
 }

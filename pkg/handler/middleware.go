@@ -51,10 +51,10 @@ func getUserId(c *gin.Context) (int, error) {
 }
 func validateUser(user todo.User) error {
 	if !nameRegex.MatchString(user.FirstName) {
-		return errors.New("first_name должен содержать 3-20 символов, включая буквы, цифры, _ и -")
+		return errors.New("first_name должно содержать 3-20 символов, включая буквы, цифры, _ и -")
 	}
 	if !nameRegex.MatchString(user.SecondName) {
-		return errors.New("second_name должен содержать 3-20 символов, включая буквы, цифры, _ и -")
+		return errors.New("second_name должно содержать 3-20 символов, включая буквы, цифры, _ и -")
 	}
 	if !passwordRegex.MatchString(user.Password) {
 		return errors.New("пароль должен содержать 5-30 символов, включая буквы, цифры, _ и -")

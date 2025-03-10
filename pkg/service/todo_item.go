@@ -7,10 +7,10 @@ import (
 
 type TodoItemService struct {
 	repo     repository.TodoItem
-	listRepo repository.TodoList
+	listRepo repository.TodoGoal
 }
 
-func NewTodoItemService(repo repository.TodoItem, listRepo repository.TodoList) *TodoItemService {
+func NewTodoItemService(repo repository.TodoItem, listRepo repository.TodoGoal) *TodoItemService {
 	return &TodoItemService{repo: repo, listRepo: listRepo}
 }
 func (s *TodoItemService) Create(userId, listId int, item todo.TodoItem) (int, error) {

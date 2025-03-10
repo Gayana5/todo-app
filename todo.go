@@ -5,10 +5,11 @@ import (
 	"time"
 )
 
-type TodoList struct {
-	Id          int    `json:"id" db:"id"`
-	Title       string `json:"title" db:"title" binding:"required"`
-	Description string `json:"description" db:"description"`
+type TodoGoal struct {
+	Id          int       `json:"id" db:"id"`
+	Title       string    `json:"title" db:"title" binding:"required"`
+	Description string    `json:"description" db:"description"`
+	EndDate     time.Time `json:"end_time" db:"end_time"`
 }
 
 type UsersGoals struct {
@@ -20,7 +21,7 @@ type TodoItem struct {
 	Id          int       `json:"id" db:"id"`
 	Title       string    `json:"title" db:"title" binding:"required"`
 	Description string    `json:"description" db:"description"`
-	Date        time.Time `json:"date" db:"date" binding:"required"`
+	EndDate     time.Time `json:"end_date" db:"end_date" binding:"required"`
 	StartTime   time.Time `json:"start_time" db:"start_time"`
 	EndTime     time.Time `json:"end_time" db:"end_time"`
 	Priority    bool      `json:"priority" db:"priority" binding:"required"`
@@ -30,7 +31,7 @@ type GoalsItem struct {
 	Id          int       `json:"id" db:"id"`
 	Title       string    `json:"title" db:"title" binding:"required"`
 	Description string    `json:"description" db:"description"`
-	Date        time.Time `json:"date" db:"date" binding:"required"`
+	EndDate     time.Time `json:"end_date" db:"end_date" binding:"required"`
 	StartTime   time.Time `json:"start_time" db:"start_time"`
 	EndTime     time.Time `json:"end_time" db:"end_time"`
 	Priority    bool      `json:"priority" db:"priority" binding:"required"`
@@ -38,8 +39,9 @@ type GoalsItem struct {
 }
 
 type UpdateGoalInput struct {
-	Title       *string `json:"title"`
-	Description *string `json:"description"`
+	Title       *string    `json:"title"`
+	Description *string    `json:"description"`
+	EndDate     *time.Time `json:"end_date"`
 }
 
 func (i UpdateGoalInput) Validate() error {

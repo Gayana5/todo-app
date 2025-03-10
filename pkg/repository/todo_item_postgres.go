@@ -27,11 +27,11 @@ func (r *TodoItemPostgres) Create(listId int, item todo.TodoItem) (int, error) {
 
 	var itemId int
 	createItemQuery := fmt.Sprintf(
-		"INSERT INTO %s (title, description, date, start_time, end_time, priority) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+		"INSERT INTO %s (title, description, end_date, start_time, end_time, priority, done) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id",
 		todoItemsTable,
 	)
 
-	row := tx.QueryRow(createItemQuery, item.Title, item.Description, item.Date, item.StartTime, item.EndTime, item.Priority, item.Done)
+	row := tx.QueryRow(createItemQuery, item.Title, item.Description, item.EndDate, item.StartTime, item.EndTime, item.Priority, item.Done)
 
 	err = row.Scan(&itemId)
 	if err != nil {
@@ -57,7 +57,7 @@ func (r *TodoItemPostgres) Create(listId int, item todo.TodoItem) (int, error) {
 func (r *TodoItemPostgres) GetAll(userId, listId int) ([]todo.TodoItem, error) {
 	var items []todo.TodoItem
 	query := fmt.Sprintf(
-		"SELECT ti.id, ti.title, ti.description, ti.date, ti.start_time, ti.end_time, ti.priority, ti.done FROM %s ti "+
+		"SELECT ti.id, ti.title, ti.description, ti.end_date, ti.start_time, ti.end_time, ti.priority, ti.done FROM %s ti "+
 			"INNER JOIN %s li ON li.item_id = ti.id "+
 			"INNER JOIN %s ul ON ul.list_id = li.list_id "+
 			"WHERE li.list_id = $1 AND ul.user_id = $2",
@@ -73,7 +73,7 @@ func (r *TodoItemPostgres) GetAll(userId, listId int) ([]todo.TodoItem, error) {
 func (r *TodoItemPostgres) GetById(userId, itemId int) (todo.TodoItem, error) {
 	var item todo.TodoItem
 	query := fmt.Sprintf(
-		"SELECT ti.id, ti.title, ti.description, ti.date, ti.start_time, ti.end_time, ti.priority, ti.done FROM %s ti "+
+		"SELECT ti.id, ti.title, ti.description, ti.end_date, ti.start_time, ti.end_time, ti.priority, ti.done FROM %s ti "+
 			"INNER JOIN %s li ON li.item_id = ti.id "+
 			"INNER JOIN %s ul ON ul.list_id = li.list_id "+
 			"WHERE ti.id = $1 AND ul.user_id = $2",
@@ -149,11 +149,7 @@ func (r *TodoItemPostgres) Update(userId, itemId int, input todo.UpdateItemInput
 	setQuery := strings.Join(setValues, ", ")
 
 	query := fmt.Sprintf(
-		"UPDATE %s ti SET %s FROM %s li, %s ul "+
-			"WHERE ti.id = li.item_id "+
-			"AND li.list_id = ul.list_id "+
-			"AND ul.user_id = $%d "+
-			"AND ti.id = $%d",
+		"UPDATE %s ti SET %s FROM %s li, %s ul WHERE ti.id = li.item_id AND li.list_id = ul.list_id AND ul.user_id = $%d AND ti.id = $%d",
 		todoItemsTable, setQuery, listsItemTable, usersListsTable, argId, argId+1,
 	)
 	args = append(args, userId, itemId)

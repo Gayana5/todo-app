@@ -7,31 +7,35 @@ import (
 
 type TodoItemService struct {
 	repo     repository.TodoItem
-	listRepo repository.TodoGoal
+	goalRepo repository.TodoGoal
 }
 
-func NewTodoItemService(repo repository.TodoItem, listRepo repository.TodoGoal) *TodoItemService {
-	return &TodoItemService{repo: repo, listRepo: listRepo}
+func NewTodoItemService(repo repository.TodoItem, goalRepo repository.TodoGoal) *TodoItemService {
+	return &TodoItemService{
+		repo:     repo,
+		goalRepo: goalRepo,
+	}
 }
 func (s *TodoItemService) Create(userId, listId int, item todo.TodoItem) (int, error) {
-	_, err := s.listRepo.GetById(userId, listId)
+	_, err := s.goalRepo.GetById(userId, listId)
 	if err != nil {
 		// Список не существует или принадлежит другому пользователю
 		return 0, err
 	}
 	return s.repo.Create(listId, item)
 }
-
-func (s *TodoItemService) GetAll(userId, listId int) ([]todo.TodoItem, error) {
-	return s.repo.GetAll(userId, listId)
+func (s *TodoItemService) GetAll(userId, goalId int) ([]todo.TodoItem, error) {
+	return s.repo.GetAll(userId, goalId)
 }
 
 func (s *TodoItemService) GetById(userId, itemId int) (todo.TodoItem, error) {
 	return s.repo.GetById(userId, itemId)
 }
+
 func (s *TodoItemService) Delete(userId, itemId int) error {
 	return s.repo.Delete(userId, itemId)
 }
+
 func (s *TodoItemService) Update(userId, itemId int, input todo.UpdateItemInput) error {
 	return s.repo.Update(userId, itemId, input)
 }

@@ -6,10 +6,11 @@ import (
 )
 
 type TodoGoal struct {
-	Id          int       `json:"id" db:"id"`
-	Title       string    `json:"title" db:"title" binding:"required"`
-	Description string    `json:"description" db:"description"`
-	EndDate     time.Time `json:"end_time" db:"end_time"`
+	Id          int    `json:"id" db:"id"`
+	Title       string `json:"title" db:"title" binding:"required"`
+	Description string `json:"description" db:"description"`
+	Colour      int    `json:"colour" db:"colour" binding:"required"`
+	Progress    int    `json:"progress" db:"progress"`
 }
 
 type UsersGoals struct {
@@ -39,9 +40,9 @@ type GoalsItem struct {
 }
 
 type UpdateGoalInput struct {
-	Title       *string    `json:"title"`
-	Description *string    `json:"description"`
-	EndDate     *time.Time `json:"end_date"`
+	Title       *string `json:"title"`
+	Description *string `json:"description"`
+	Colour      *int    `json:"colour"`
 }
 
 func (i UpdateGoalInput) Validate() error {

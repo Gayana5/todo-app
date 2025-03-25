@@ -11,16 +11,16 @@ type Authorization interface {
 	UserExists(email string) (bool, error)
 }
 type TodoGoal interface {
-	Create(userId int, list todo.TodoGoal) (int, error)
+	Create(userId int, goal todo.TodoGoal) (int, error)
 	GetAll(userId int) ([]todo.TodoGoal, error)
-	GetById(userId, listId int) (todo.TodoGoal, error)
-	Delete(userId, listId int) error
-	Update(userId, listId int, input todo.UpdateGoalInput) error
+	GetById(userId, goalId int) (todo.TodoGoal, error)
+	Delete(userId, goalId int) error
+	Update(userId, goalId int, input todo.UpdateGoalInput) error
 }
 
 type TodoItem interface {
-	Create(listId int, item todo.TodoItem) (int, error)
-	GetAll(userId, listId int) ([]todo.TodoItem, error)
+	Create(goalId int, item todo.TodoItem) (int, error)
+	GetAll(userId, goalId int) ([]todo.TodoItem, error)
 	GetById(userId, itemId int) (todo.TodoItem, error)
 	Delete(userId, itemId int) error
 	Update(userId, itemId int, input todo.UpdateItemInput) error
@@ -34,7 +34,7 @@ type Repository struct {
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
 		Authorization: NewAuthPostgres(db),
-		TodoGoal:      NewTodoListPostgres(db),
+		TodoGoal:      NewTodoGoalPostgres(db),
 		TodoItem:      NewTodoItemPostgres(db),
 	}
 }

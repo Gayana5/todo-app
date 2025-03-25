@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	"github.com/Gayana5/todo-app"
 	"github.com/jmoiron/sqlx"
@@ -12,26 +13,26 @@ type TodoGoalPostgres struct {
 	db *sqlx.DB
 }
 
-func NewTodoListPostgres(db *sqlx.DB) *TodoGoalPostgres {
+func NewTodoGoalPostgres(db *sqlx.DB) *TodoGoalPostgres {
 	return &TodoGoalPostgres{db: db}
 }
 
-func (r *TodoGoalPostgres) Create(userId int, list todo.TodoGoal) (int, error) {
+func (r *TodoGoalPostgres) Create(userId int, goal todo.TodoGoal) (int, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return 0, err
 	}
 
 	var id int
-	createListQuery := fmt.Sprintf("INSERT INTO %s (title, description, end_date) VALUES ($1, $2, $3) RETURNING id", todoListsTable)
-	row := tx.QueryRow(createListQuery, list.Title, list.Description, list.EndDate)
+	createListQuery := fmt.Sprintf("INSERT INTO %s (title, description, colour) VALUES ($1, $2, $3) RETURNING id", todoGoalsTable)
+	row := tx.QueryRow(createListQuery, goal.Title, goal.Description, goal.Colour)
 	if err := row.Scan(&id); err != nil {
 		tx.Rollback()
 		return 0, err
 	}
 
-	createUsersListQuery := fmt.Sprintf("INSERT INTO %s (user_id, list_id) VALUES ($1, $2)", usersListsTable)
-	_, err = tx.Exec(createUsersListQuery, userId, id)
+	createUsersGoalQuery := fmt.Sprintf("INSERT INTO %s (user_id, goal_id) VALUES ($1, $2)", usersGoalsTable)
+	_, err = tx.Exec(createUsersGoalQuery, userId, id)
 	if err != nil {
 		tx.Rollback()
 		return 0, err
@@ -41,30 +42,72 @@ func (r *TodoGoalPostgres) Create(userId int, list todo.TodoGoal) (int, error) {
 func (r *TodoGoalPostgres) GetAll(userId int) ([]todo.TodoGoal, error) {
 	var lists []todo.TodoGoal
 
-	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description FROM %s tl INNER JOIN %s ul on tl.id = ul.list_id WHERE ul.user_id = $1",
-		todoListsTable, usersListsTable)
+	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description, tl.colour FROM %s tl INNER JOIN %s ul on tl.id = ul.goal_id WHERE ul.user_id = $1",
+		todoGoalsTable, usersGoalsTable)
 	err := r.db.Select(&lists, query, userId)
 
 	return lists, err
 }
 
-func (r *TodoGoalPostgres) GetById(userId, listId int) (todo.TodoGoal, error) {
-	var list todo.TodoGoal
+func (r *TodoGoalPostgres) GetById(userId, goalId int) (todo.TodoGoal, error) {
+	var goal todo.TodoGoal
 
-	query := fmt.Sprintf(`SELECT tl.id, tl.title, tl.description FROM %s tl 
-                                       INNER JOIN %s ul on tl.id = ul.list_id WHERE ul.user_id = $1 AND ul.list_id = $2`,
-		todoListsTable, usersListsTable)
-	err := r.db.Get(&list, query, userId, listId)
+	// Запрос цели пользователя
+	query := fmt.Sprintf(`
+        SELECT tl.id, tl.title, tl.description, tl.colour, tl.progress
+        FROM %s tl
+        INNER JOIN %s ul ON tl.id = ul.goal_id
+        WHERE ul.user_id = $1 AND ul.goal_id = $2
+    `, todoGoalsTable, usersGoalsTable)
+	err := r.db.Get(&goal, query, userId, goalId)
+	if err != nil {
+		return goal, err
+	}
 
-	return list, err
+	// Подсчет количества выполненных и всех задач
+	var totalTasks, completedTasks int
+	countQuery := fmt.Sprintf(`
+    	SELECT 
+        COUNT(*) AS total_tasks,
+        COALESCE(SUM(CASE WHEN ti.done = true THEN 1 ELSE 0 END), 0) AS completed_tasks
+    	FROM goal_items gi 
+    	JOIN todo_items ti ON gi.item_id = ti.id 
+    	WHERE gi.goal_id = $1`)
+	err = r.db.QueryRow(countQuery, goalId).Scan(&totalTasks, &completedTasks)
+	if err != nil {
+		return goal, err
+	}
+
+	// Пересчет прогресса
+	var newProgress int
+
+	if totalTasks > 0 {
+		newProgress = (completedTasks * 100) / totalTasks
+	} else {
+		newProgress = 0
+	}
+
+	// Обновление прогресса в базе, если он изменился
+	if goal.Progress != newProgress {
+		updateQuery := fmt.Sprintf(`
+            UPDATE %s SET progress = $1 WHERE id = $2
+        `, todoGoalsTable)
+		_, err = r.db.Exec(updateQuery, newProgress, goalId)
+		if err != nil {
+			return goal, err
+		}
+		goal.Progress = newProgress
+	}
+
+	return goal, nil
 }
-func (r *TodoGoalPostgres) Delete(userId, listId int) error {
-	query := fmt.Sprintf("DELETE FROM %s tl USING %s ul WHERE ul.list_id = $1 AND ul.user_id = $2", todoListsTable, usersListsTable)
-	_, err := r.db.Exec(query, listId, userId)
+func (r *TodoGoalPostgres) Delete(userId, goalId int) error {
+	query := fmt.Sprintf("DELETE FROM %s tl USING %s ul WHERE ul.goal_id = $1 AND ul.user_id = $2", todoGoalsTable, usersGoalsTable)
+	_, err := r.db.Exec(query, goalId, userId)
 
 	return err
 }
-func (r *TodoGoalPostgres) Update(userId, listId int, input todo.UpdateGoalInput) error {
+func (r *TodoGoalPostgres) Update(userId, goalId int, input todo.UpdateGoalInput) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)
 	argId := 1
@@ -79,21 +122,28 @@ func (r *TodoGoalPostgres) Update(userId, listId int, input todo.UpdateGoalInput
 		args = append(args, *input.Description)
 		argId++
 	}
-	if input.EndDate != nil {
-		setValues = append(setValues, fmt.Sprintf("end_date=$%d", argId))
-		args = append(args, *input.EndDate)
+	if input.Colour != nil {
+		setValues = append(setValues, fmt.Sprintf("colour=$%d", argId))
+		args = append(args, *input.Colour)
 		argId++
 	}
 
-	// title = $1
-	// description = $1
-	// end_date = $1
-	// title = $1, description = $2, end_date = $3
+	if len(setValues) == 0 {
+		return errors.New("update structure has no values")
+	}
+
 	setQuery := strings.Join(setValues, ", ")
 
-	query := fmt.Sprintf("UPDATE %s tl SET %s FROM %s ul WHERE tl.id = ul.list_id AND ul.list_id = $1 AND ul.user_id = $2",
-		todoListsTable, setQuery, usersListsTable)
-	args = append(args, listId, userId)
+	query := fmt.Sprintf(`
+    UPDATE %s tl 
+    SET %s 
+    WHERE tl.id IN (
+        SELECT ul.list_id FROM %s ul WHERE ul.list_id = $%d AND ul.user_id = $%d
+    )`,
+		todoGoalsTable, setQuery, usersGoalsTable, argId, argId+1,
+	)
+
+	args = append(args, goalId, userId)
 
 	logrus.Debugf("updateQuery: %s", query)
 	logrus.Debugf("args: %v", args)

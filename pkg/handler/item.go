@@ -41,12 +41,12 @@ func (h *Handler) getAllItems(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, "invalid goal id parameter")
 		return
 	}
-	listId, err := strconv.Atoi(c.Param("id"))
+	goalId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	items, err := h.services.TodoItem.GetAll(userId, listId)
+	items, err := h.services.TodoItem.GetAll(userId, goalId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return

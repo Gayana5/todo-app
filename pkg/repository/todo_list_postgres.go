@@ -40,13 +40,17 @@ func (r *TodoGoalPostgres) Create(userId int, goal todo.TodoGoal) (int, error) {
 	return id, tx.Commit()
 }
 func (r *TodoGoalPostgres) GetAll(userId int) ([]todo.TodoGoal, error) {
-	var lists []todo.TodoGoal
+	var goals []todo.TodoGoal
 
-	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description, tl.colour FROM %s tl INNER JOIN %s ul on tl.id = ul.goal_id WHERE ul.user_id = $1",
+	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description, tl.colour, tl.progress FROM %s tl INNER JOIN %s ul on tl.id = ul.goal_id WHERE ul.user_id = $1",
 		todoGoalsTable, usersGoalsTable)
-	err := r.db.Select(&lists, query, userId)
+	err := r.db.Select(&goals, query, userId)
 
-	return lists, err
+	for _, goal := range goals {
+		goal, err = r.CountProgress(goal)
+	}
+
+	return goals, err
 }
 
 func (r *TodoGoalPostgres) GetById(userId, goalId int) (todo.TodoGoal, error) {
@@ -64,39 +68,9 @@ func (r *TodoGoalPostgres) GetById(userId, goalId int) (todo.TodoGoal, error) {
 		return goal, err
 	}
 
-	// Подсчет количества выполненных и всех задач
-	var totalTasks, completedTasks int
-	countQuery := fmt.Sprintf(`
-    	SELECT 
-        COUNT(*) AS total_tasks,
-        COALESCE(SUM(CASE WHEN ti.done = true THEN 1 ELSE 0 END), 0) AS completed_tasks
-    	FROM goal_items gi 
-    	JOIN todo_items ti ON gi.item_id = ti.id 
-    	WHERE gi.goal_id = $1`)
-	err = r.db.QueryRow(countQuery, goalId).Scan(&totalTasks, &completedTasks)
+	goal, err = r.CountProgress(goal)
 	if err != nil {
 		return goal, err
-	}
-
-	// Пересчет прогресса
-	var newProgress int
-
-	if totalTasks > 0 {
-		newProgress = (completedTasks * 100) / totalTasks
-	} else {
-		newProgress = 0
-	}
-
-	// Обновление прогресса в базе, если он изменился
-	if goal.Progress != newProgress {
-		updateQuery := fmt.Sprintf(`
-            UPDATE %s SET progress = $1 WHERE id = $2
-        `, todoGoalsTable)
-		_, err = r.db.Exec(updateQuery, newProgress, goalId)
-		if err != nil {
-			return goal, err
-		}
-		goal.Progress = newProgress
 	}
 
 	return goal, nil
@@ -150,4 +124,42 @@ func (r *TodoGoalPostgres) Update(userId, goalId int, input todo.UpdateGoalInput
 
 	_, err := r.db.Exec(query, args...)
 	return err
+}
+
+func (r *TodoGoalPostgres) CountProgress(goal todo.TodoGoal) (todo.TodoGoal, error) {
+	var totalTasks, completedTasks int
+	countQuery := fmt.Sprintf(`
+    	SELECT 
+        COUNT(*) AS total_tasks,
+        COALESCE(SUM(CASE WHEN ti.done = true THEN 1 ELSE 0 END), 0) AS completed_tasks
+    	FROM goal_items gi 
+    	JOIN todo_items ti ON gi.item_id = ti.id 
+    	WHERE gi.goal_id = $1`)
+	err := r.db.QueryRow(countQuery, goal.Id).Scan(&totalTasks, &completedTasks)
+	if err != nil {
+		return goal, err
+	}
+
+	// Пересчет прогресса
+	var newProgress int
+
+	if totalTasks > 0 {
+		newProgress = (completedTasks * 100) / totalTasks
+	} else {
+		newProgress = 0
+	}
+
+	// Обновление прогресса в базе, если он изменился
+	if goal.Progress != newProgress {
+		updateQuery := fmt.Sprintf(`
+            UPDATE %s SET progress = $1 WHERE id = $2
+        `, todoGoalsTable)
+		_, err = r.db.Exec(updateQuery, newProgress, goal.Id)
+		if err != nil {
+			return goal, err
+		}
+		goal.Progress = newProgress
+	}
+	return goal, nil
+
 }

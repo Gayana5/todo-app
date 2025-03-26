@@ -20,7 +20,7 @@ type TodoGoal interface {
 }
 
 type TodoItem interface {
-	Create(goalId int, item todo.TodoItem) (int, error)
+	Create(userId int, goalId int, item todo.TodoItem) (int, error)
 	GetAll(userId, goalId int) ([]todo.TodoItem, error)
 	GetById(userId, itemId int) (todo.TodoItem, error)
 	Delete(userId, itemId int) error

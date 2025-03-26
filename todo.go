@@ -20,6 +20,7 @@ type UsersGoals struct {
 }
 type TodoItem struct {
 	Id          int       `json:"id" db:"id"`
+	UserId      int       `json:"userId" db:"user_id"`
 	Title       string    `json:"title" db:"title" binding:"required"`
 	Description string    `json:"description" db:"description"`
 	EndDate     time.Time `json:"end_date" db:"end_date" binding:"required"`
@@ -29,14 +30,9 @@ type TodoItem struct {
 	Done        bool      `json:"done" db:"done"`
 }
 type GoalsItem struct {
-	Id          int       `json:"id" db:"id"`
-	Title       string    `json:"title" db:"title" binding:"required"`
-	Description string    `json:"description" db:"description"`
-	EndDate     time.Time `json:"end_date" db:"end_date" binding:"required"`
-	StartTime   time.Time `json:"start_time" db:"start_time"`
-	EndTime     time.Time `json:"end_time" db:"end_time"`
-	Priority    bool      `json:"priority" db:"priority" binding:"required"`
-	Done        bool      `json:"done" db:"done"`
+	id     int `json:"id" db:"id"`
+	itemId int `json:"item_id" db:"item_id"`
+	goalId int `json:"goal_id" db:"goal_id"`
 }
 
 type UpdateGoalInput struct {

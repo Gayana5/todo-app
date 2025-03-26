@@ -27,6 +27,7 @@ CREATE TABLE users_goals
 CREATE TABLE todo_items
 (
     id          serial       PRIMARY KEY NOT NULL UNIQUE,
+    user_id     int references users (id) on delete cascade not null,
     title       varchar(255) NOT NULL,
     description varchar(255),
     end_date    date         NOT NULL,

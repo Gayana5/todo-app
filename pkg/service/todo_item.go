@@ -16,13 +16,16 @@ func NewTodoItemService(repo repository.TodoItem, goalRepo repository.TodoGoal) 
 		goalRepo: goalRepo,
 	}
 }
-func (s *TodoItemService) Create(userId, listId int, item todo.TodoItem) (int, error) {
-	_, err := s.goalRepo.GetById(userId, listId)
+func (s *TodoItemService) Create(userId, goalId int, item todo.TodoItem) (int, error) {
+	if goalId == 0 {
+		return s.repo.Create(userId, goalId, item)
+	}
+	_, err := s.goalRepo.GetById(userId, goalId)
 	if err != nil {
 		// Список не существует или принадлежит другому пользователю
 		return 0, err
 	}
-	return s.repo.Create(listId, item)
+	return s.repo.Create(userId, goalId, item)
 }
 func (s *TodoItemService) GetAll(userId, goalId int) ([]todo.TodoItem, error) {
 	return s.repo.GetAll(userId, goalId)

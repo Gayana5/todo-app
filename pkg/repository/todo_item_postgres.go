@@ -14,7 +14,7 @@ type TodoItemPostgres struct {
 func NewTodoItemPostgres(db *sqlx.DB) *TodoItemPostgres {
 	return &TodoItemPostgres{db: db}
 }
-func (r *TodoItemPostgres) Create(goalId int, item todo.TodoItem) (int, error) {
+func (r *TodoItemPostgres) Create(userId int, goalId int, item todo.TodoItem) (int, error) {
 
 	if r.db == nil {
 		return 0, fmt.Errorf("database connection is nil")
@@ -27,12 +27,12 @@ func (r *TodoItemPostgres) Create(goalId int, item todo.TodoItem) (int, error) {
 
 	var itemId int
 	createItemQuery := fmt.Sprintf(
-		`INSERT INTO %s (title, description, end_date, start_time, end_time, priority, done) 
-				VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+		`INSERT INTO %s (user_id, title, description, end_date, start_time, end_time, priority, done) 
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
 		todoItemsTable,
 	)
 
-	row := tx.QueryRow(createItemQuery, item.Title, item.Description, item.EndDate, item.StartTime, item.EndTime, item.Priority, item.Done)
+	row := tx.QueryRow(createItemQuery, userId, item.Title, item.Description, item.EndDate, item.StartTime, item.EndTime, item.Priority, item.Done)
 
 	err = row.Scan(&itemId)
 	if err != nil {
@@ -42,54 +42,67 @@ func (r *TodoItemPostgres) Create(goalId int, item todo.TodoItem) (int, error) {
 		}
 		return 0, err
 	}
+	if goalId != 0 {
+		createGoalItemsQuery := fmt.Sprintf("INSERT INTO %s (goal_id, item_id) VALUES ($1, $2)", goalsItemTable)
 
-	createGoalItemsQuery := fmt.Sprintf("INSERT INTO %s (goal_id, item_id) VALUES ($1, $2)", goalsItemTable)
-
-	_, err = tx.Exec(createGoalItemsQuery, goalId, itemId)
-	if err != nil {
-		err := tx.Rollback()
+		_, err = tx.Exec(createGoalItemsQuery, goalId, itemId)
 		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return 0, err
+			}
 			return 0, err
 		}
-		return 0, err
 	}
 
 	if err = tx.Commit(); err != nil {
 		return 0, err
 	}
-
 	return itemId, nil
 }
 
 func (r *TodoItemPostgres) GetAll(userId, goalId int) ([]todo.TodoItem, error) {
 	var items []todo.TodoItem
-	query := fmt.Sprintf(
-		`SELECT ti.id, ti.title, ti.description, ti.end_date, ti.start_time, ti.end_time, ti.priority, ti.done 
+	if goalId != 0 {
+		query := fmt.Sprintf(
+			`SELECT ti.id, ti.user_id, ti.title, ti.description, ti.end_date, ti.start_time, ti.end_time, ti.priority, ti.done 
 				FROM %s ti INNER JOIN %s li ON li.item_id = ti.id 
 				INNER JOIN %s ul ON ul.goal_id = li.goal_id 
 				WHERE li.goal_id = $1 AND ul.user_id = $2`,
-		todoItemsTable, goalsItemTable, usersGoalsTable,
-	)
+			todoItemsTable, goalsItemTable, usersGoalsTable,
+		)
 
-	if err := r.db.Select(&items, query, goalId, userId); err != nil {
-		return nil, err
+		if err := r.db.Select(&items, query, goalId, userId); err != nil {
+			return nil, err
+		}
+	} else {
+		query := fmt.Sprintf(
+			`SELECT id, user_id, title, description, end_date, start_time, end_time, priority, done 
+     				FROM %s 
+     				WHERE user_id = $1`,
+			todoItemsTable,
+		)
+
+		if err := r.db.Select(&items, query, userId); err != nil {
+			return nil, err
+		}
 	}
 	return items, nil
 }
 
 func (r *TodoItemPostgres) GetById(userId, itemId int) (todo.TodoItem, error) {
 	var item todo.TodoItem
-	query := fmt.Sprintf(
-		`SELECT ti.id, ti.title, ti.description, ti.end_date, ti.start_time, ti.end_time, ti.priority, ti.done 
-				FROM %s ti INNER JOIN %s li ON li.item_id = ti.id 
-				INNER JOIN %s ul ON ul.goal_id = li.goal_id 
-				WHERE ti.id = $1 AND ul.user_id = $2`,
-		todoItemsTable, goalsItemTable, usersGoalsTable,
-	)
+
+	query := fmt.Sprintf(`
+    SELECT id, user_id, title, description, end_date, start_time, end_time, priority, done 
+    FROM %s 
+    WHERE id = $1 AND user_id = $2`,
+		todoItemsTable)
 
 	if err := r.db.Get(&item, query, itemId, userId); err != nil {
 		return item, err
 	}
+
 	return item, nil
 }
 

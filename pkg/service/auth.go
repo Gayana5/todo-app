@@ -73,5 +73,10 @@ func (s *AuthService) generatePasswordHash(password string) string {
 }
 
 func (s *AuthService) GenerateCode() string {
+
 	return fmt.Sprintf("%04d", rand.Intn(10000))
+}
+
+func (s *AuthService) GetInfo(id int) (todo.User, error) {
+	return s.repo.GetInfo(id)
 }

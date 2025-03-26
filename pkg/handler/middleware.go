@@ -10,7 +10,7 @@ import (
 
 const (
 	authorizationHeader = "Authorization"
-	userCtx             = "userId"
+	userCtx             = "user_id"
 )
 
 func (h *Handler) userIdentity(c *gin.Context) {
@@ -39,16 +39,16 @@ func (h *Handler) userIdentity(c *gin.Context) {
 func getUserId(c *gin.Context) (int, error) {
 	id, ok := c.Get(userCtx)
 	if !ok {
-		newErrorResponse(c, http.StatusInternalServerError, "User id not found")
-		return 0, errors.New("User id not found")
+		return 0, errors.New("user id not found")
 	}
+
 	idInt, ok := id.(int)
 	if !ok {
-		newErrorResponse(c, http.StatusInternalServerError, "User id is of incorrect type")
-		return 0, errors.New("user id not found")
+		return 0, errors.New("user id is of invalid type")
 	}
 	return idInt, nil
 }
+
 func validateUser(user todo.User) error {
 	if !nameRegex.MatchString(user.FirstName) {
 		return errors.New("first_name должно содержать 3-20 символов, включая буквы, цифры, _ и -")

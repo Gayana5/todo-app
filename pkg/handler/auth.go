@@ -119,3 +119,21 @@ var (
 	nameRegex     = regexp.MustCompile(`^[a-zA-Z0-9_-]{3,20}$`)
 	passwordRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]{5,30}$`)
 )
+
+func (h *Handler) getInfo(c *gin.Context) {
+	userId, err := getUserId(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Пользователь не найден."})
+		return
+	}
+	user, err := h.services.Authorization.GetInfo(userId)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"first_name":  user.FirstName,
+		"second_name": user.SecondName,
+		"email":       user.Email,
+	})
+}

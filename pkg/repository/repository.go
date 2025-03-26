@@ -9,6 +9,7 @@ type Authorization interface {
 	CreateUser(user todo.User) (int, error)
 	GetUser(username, password string) (todo.User, error)
 	UserExists(email string) (bool, error)
+	GetInfo(id int) (todo.User, error)
 }
 type TodoGoal interface {
 	Create(userId int, goal todo.TodoGoal) (int, error)

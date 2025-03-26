@@ -32,9 +32,19 @@ func (r *AuthPostgres) GetUser(email, password string) (todo.User, error) {
 }
 func (r *AuthPostgres) UserExists(email string) (bool, error) {
 	var count int
-	err := r.db.QueryRow("SELECT COUNT(*) FROM users WHERE email = $1", email).Scan(&count)
+	err := r.db.QueryRow(`SELECT COUNT(*) FROM users WHERE email = $1`, email).Scan(&count)
 	if err != nil {
 		return false, err
 	}
 	return count > 0, nil
+}
+func (r *AuthPostgres) GetInfo(id int) (todo.User, error) {
+	var user todo.User
+	query := fmt.Sprintf("SELECT * FROM %s WHERE id = $1", usersTable)
+	err := r.db.Get(&user, query, id)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
 }

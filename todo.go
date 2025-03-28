@@ -26,13 +26,13 @@ type TodoItem struct {
 	EndDate     time.Time `json:"end_date" db:"end_date" binding:"required"`
 	StartTime   time.Time `json:"start_time" db:"start_time"`
 	EndTime     time.Time `json:"end_time" db:"end_time"`
-	Priority    bool      `json:"priority" db:"priority" binding:"required"`
+	Priority    bool      `json:"priority" db:"priority"`
 	Done        bool      `json:"done" db:"done"`
 }
 type GoalsItem struct {
-	id     int `json:"id" db:"id"`
-	itemId int `json:"item_id" db:"item_id"`
-	goalId int `json:"goal_id" db:"goal_id"`
+	Id     int `json:"id" db:"id"`
+	ItemId int `json:"item_id" db:"item_id"`
+	GoalId int `json:"goal_id" db:"goal_id"`
 }
 
 type UpdateGoalInput struct {
@@ -51,15 +51,15 @@ func (i UpdateGoalInput) Validate() error {
 type UpdateItemInput struct {
 	Title       *string    `json:"title"`
 	Description *string    `json:"description"`
-	Date        *time.Time `json:"date" db:"date"`
-	StartTime   *time.Time `json:"start_time" db:"start_time"`
-	EndTime     *time.Time `json:"end_time" db:"end_time"`
-	Priority    *bool      `json:"priority" db:"priority"`
-	Done        *bool      `json:"done" db:"done"`
+	EndDate     *time.Time `json:"end_date"`
+	StartTime   *time.Time `json:"start_time"`
+	EndTime     *time.Time `json:"end_time"`
+	Priority    *bool      `json:"priority"`
+	Done        *bool      `json:"done"`
 }
 
 func (i UpdateItemInput) Validate() error {
-	if i.Title == nil && i.Description == nil && i.Done == nil {
+	if i.Title == nil && i.Description == nil && i.Done == nil && i.EndDate == nil && i.StartTime == nil && i.EndTime == nil && i.Priority == nil {
 		return errors.New("update structure has no values")
 	}
 	return nil

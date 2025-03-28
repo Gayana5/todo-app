@@ -33,7 +33,7 @@ CREATE TABLE todo_items
     end_date    date         NOT NULL,
     start_time  time,
     end_time    time,
-    priority    boolean      NOT NULL DEFAULT false,
+    priority    boolean      DEFAULT false,
     done        boolean      DEFAULT false
 );
 -- задачи цели

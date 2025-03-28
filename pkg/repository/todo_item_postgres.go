@@ -115,22 +115,33 @@ func (r *TodoItemPostgres) GetById(userId, itemId, goalId int) (todo.TodoItem, e
 	return item, nil
 }
 
-func (r *TodoItemPostgres) Delete(userId, itemId int) error {
-	query := fmt.Sprintf(
-		`DELETE FROM %s ti 
+func (r *TodoItemPostgres) Delete(userId, itemId, goalId int) error {
+	if goalId != 0 {
+		query := fmt.Sprintf(
+			`DELETE FROM %s ti 
         USING %s li, %s ul 
         WHERE ti.id = li.item_id 
         AND li.goal_id = ul.goal_id 
         AND ul.user_id = $1 
         AND ti.id = $2`,
-		todoItemsTable, goalsItemTable, usersGoalsTable,
-	)
+			todoItemsTable, goalsItemTable, usersGoalsTable,
+		)
 
-	_, err := r.db.Exec(query, userId, itemId)
-	return err
+		_, err := r.db.Exec(query, userId, itemId)
+		return err
+	} else {
+		query := fmt.Sprintf(
+			`DELETE FROM %s ti  
+                    WHERE ti.user_id = $1 AND ti.id = $2`,
+			todoItemsTable,
+		)
+
+		_, err := r.db.Exec(query, userId, itemId)
+		return err
+	}
 }
 
-func (r *TodoItemPostgres) Update(userId, itemId int, input todo.UpdateItemInput) error {
+func (r *TodoItemPostgres) Update(userId, itemId, goalId int, input todo.UpdateItemInput) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)
 	argId := 1
@@ -145,9 +156,9 @@ func (r *TodoItemPostgres) Update(userId, itemId int, input todo.UpdateItemInput
 		args = append(args, *input.Description)
 		argId++
 	}
-	if input.Date != nil {
-		setValues = append(setValues, fmt.Sprintf("date=$%d", argId))
-		args = append(args, *input.Date)
+	if input.EndDate != nil {
+		setValues = append(setValues, fmt.Sprintf("end_date=$%d", argId))
+		args = append(args, *input.EndDate)
 		argId++
 	}
 	if input.StartTime != nil {
@@ -177,12 +188,21 @@ func (r *TodoItemPostgres) Update(userId, itemId int, input todo.UpdateItemInput
 
 	setQuery := strings.Join(setValues, ", ")
 
-	query := fmt.Sprintf(
-		`UPDATE %s ti SET %s FROM %s li, %s ul WHERE ti.id = li.item_id AND li.goal_id = ul.goal_id AND ul.user_id = $%d AND ti.id = $%d`,
-		todoItemsTable, setQuery, goalsItemTable, usersGoalsTable, argId, argId+1,
-	)
-	args = append(args, userId, itemId)
-
-	_, err := r.db.Exec(query, args...)
-	return err
+	if goalId != 0 {
+		query := fmt.Sprintf(
+			`UPDATE %s ti SET %s FROM %s li, %s ul WHERE ti.id = li.item_id AND li.goal_id = ul.goal_id AND ul.user_id = $%d AND ti.id = $%d`,
+			todoItemsTable, setQuery, goalsItemTable, usersGoalsTable, argId, argId+1,
+		)
+		args = append(args, userId, itemId)
+		_, err := r.db.Exec(query, args...)
+		return err
+	} else {
+		query := fmt.Sprintf(
+			`UPDATE %s ti SET %s WHERE ti.user_id = $%d AND ti.id = $%d`,
+			todoItemsTable, setQuery, argId, argId+1,
+		)
+		args = append(args, userId, itemId)
+		_, err := r.db.Exec(query, args...)
+		return err
+	}
 }

@@ -10,10 +10,10 @@ import (
 func (h *Handler) createItem(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid goal id parameter")
+		newErrorResponse(c, http.StatusBadRequest, "invalid user id parameter")
 		return
 	}
-	listId, err := strconv.Atoi(c.Param("id"))
+	goalId, err := strconv.Atoi(c.Param("goal_id"))
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid goal id parameter")
 		return
@@ -25,7 +25,7 @@ func (h *Handler) createItem(c *gin.Context) {
 		return
 	}
 
-	id, err := h.services.TodoItem.Create(userId, listId, input)
+	id, err := h.services.TodoItem.Create(userId, goalId, input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -38,10 +38,10 @@ func (h *Handler) createItem(c *gin.Context) {
 func (h *Handler) getAllItems(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid goal id parameter")
+		newErrorResponse(c, http.StatusBadRequest, "invalid user id parameter")
 		return
 	}
-	goalId, err := strconv.Atoi(c.Param("id"))
+	goalId, err := strconv.Atoi(c.Param("goal_id"))
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
@@ -56,15 +56,21 @@ func (h *Handler) getAllItems(c *gin.Context) {
 func (h *Handler) getItemById(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid goal id parameter")
+		newErrorResponse(c, http.StatusBadRequest, "invalid user id parameter")
 		return
 	}
-	itemId, err := strconv.Atoi(c.Param("id"))
+	goalId, err := strconv.Atoi(c.Param("goal_id"))
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	item, err := h.services.TodoItem.GetById(userId, itemId)
+	itemId, err := strconv.Atoi(c.Param("item_id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	item, err := h.services.TodoItem.GetById(userId, itemId, goalId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -77,7 +83,7 @@ func (h *Handler) updateItem(c *gin.Context) {
 		return
 	}
 
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("item_id"))
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid id")
 		return
@@ -99,12 +105,12 @@ func (h *Handler) updateItem(c *gin.Context) {
 func (h *Handler) deleteItem(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid goal id parameter")
+		newErrorResponse(c, http.StatusBadRequest, "invalid user id parameter")
 		return
 	}
-	itemId, err := strconv.Atoi(c.Param("id"))
+	itemId, err := strconv.Atoi(c.Param("item_id"))
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid goal id parameter")
+		newErrorResponse(c, http.StatusBadRequest, "invalid item id parameter")
 		return
 	}
 	err = h.services.TodoItem.Delete(userId, itemId)

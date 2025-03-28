@@ -90,17 +90,26 @@ func (r *TodoItemPostgres) GetAll(userId, goalId int) ([]todo.TodoItem, error) {
 	return items, nil
 }
 
-func (r *TodoItemPostgres) GetById(userId, itemId int) (todo.TodoItem, error) {
+func (r *TodoItemPostgres) GetById(userId, itemId, goalId int) (todo.TodoItem, error) {
 	var item todo.TodoItem
+	if goalId != 0 {
+		query := fmt.Sprintf(`SELECT ti.id, ti.user_id, ti.title, ti.description, ti.end_date, ti.start_time, ti.end_time, ti.priority, ti.done
+									FROM %s ti INNER JOIN %s li on li.item_id = ti.id
+									INNER JOIN %s ul on ul.goal_id = li.goal_id WHERE ti.id = $1 AND ul.user_id = $2`,
+			todoItemsTable, goalsItemTable, usersGoalsTable)
+		if err := r.db.Get(&item, query, itemId, userId); err != nil {
+			return item, err
+		}
+	} else {
+		query := fmt.Sprintf(`
+		    SELECT id, user_id, title, description, end_date, start_time, end_time, priority, done
+		    FROM %s
+		    WHERE id = $1 AND user_id = $2`,
+			todoItemsTable)
 
-	query := fmt.Sprintf(`
-    SELECT id, user_id, title, description, end_date, start_time, end_time, priority, done 
-    FROM %s 
-    WHERE id = $1 AND user_id = $2`,
-		todoItemsTable)
-
-	if err := r.db.Get(&item, query, itemId, userId); err != nil {
-		return item, err
+		if err := r.db.Get(&item, query, itemId, userId); err != nil {
+			return item, err
+		}
 	}
 
 	return item, nil

@@ -32,11 +32,11 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		{
 			goals.POST("/", h.createGoal)
 			goals.GET("/", h.getAllGoals)
-			goals.GET("/:id", h.getGoalById)
-			goals.PUT("/:id", h.updateGoal)
-			goals.DELETE("/:id", h.deleteGoal)
+			goals.GET("/:goal_id", h.getGoalById)
+			goals.PUT("/:goal_id", h.updateGoal)
+			goals.DELETE("/:goal_id", h.deleteGoal)
 
-			items := goals.Group(":id/items")
+			items := goals.Group("/:goal_id/items")
 			{
 				items.POST("/", h.createItem)
 				items.GET("/", h.getAllItems)

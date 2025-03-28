@@ -13,16 +13,16 @@ type Authorization interface {
 	GetInfo(id int) (todo.User, error)
 }
 type TodoGoal interface {
-	Create(userId int, list todo.TodoGoal) (int, error)
+	Create(userId int, goal todo.TodoGoal) (int, error)
 	GetAll(userId int) ([]todo.TodoGoal, error)
-	GetById(userId, listId int) (todo.TodoGoal, error)
-	Delete(userId, listId int) error
-	Update(userId, listId int, input todo.UpdateGoalInput) error
+	GetById(userId, goalId int) (todo.TodoGoal, error)
+	Delete(userId, goalId int) error
+	Update(userId, goalId int, input todo.UpdateGoalInput) error
 }
 
 type TodoItem interface {
-	Create(userId, listId int, item todo.TodoItem) (int, error)
-	GetAll(userId, listId int) ([]todo.TodoItem, error)
+	Create(userId, goalId int, item todo.TodoItem) (int, error)
+	GetAll(userId, goalId int) ([]todo.TodoItem, error)
 	GetById(userId, itemId, goalId int) (todo.TodoItem, error)
 	Delete(userId, itemId int) error
 	Update(userId, itemId int, input todo.UpdateItemInput) error

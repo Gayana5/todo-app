@@ -13,23 +13,23 @@ func NewTodoListService(repo repository.TodoGoal) *TodoGoalService {
 	return &TodoGoalService{repo: repo}
 }
 
-func (s *TodoGoalService) Create(userId int, list todo.TodoGoal) (int, error) {
-	return s.repo.Create(userId, list)
+func (s *TodoGoalService) Create(userId int, goal todo.TodoGoal) (int, error) {
+	return s.repo.Create(userId, goal)
 }
 
 func (s *TodoGoalService) GetAll(userId int) ([]todo.TodoGoal, error) {
 	return s.repo.GetAll(userId)
 }
 
-func (s *TodoGoalService) GetById(userId, listId int) (todo.TodoGoal, error) {
-	return s.repo.GetById(userId, listId)
+func (s *TodoGoalService) GetById(userId, goalId int) (todo.TodoGoal, error) {
+	return s.repo.GetById(userId, goalId)
 }
-func (s *TodoGoalService) Delete(userId, listId int) error {
-	return s.repo.Delete(userId, listId)
+func (s *TodoGoalService) Delete(userId, goalId int) error {
+	return s.repo.Delete(userId, goalId)
 }
-func (s *TodoGoalService) Update(userId, listId int, input todo.UpdateGoalInput) error {
+func (s *TodoGoalService) Update(userId, goalId int, input todo.UpdateGoalInput) error {
 	if err := input.Validate(); err != nil {
 		return err
 	}
-	return s.repo.Update(userId, listId, input)
+	return s.repo.Update(userId, goalId, input)
 }

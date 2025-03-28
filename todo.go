@@ -42,7 +42,7 @@ type UpdateGoalInput struct {
 }
 
 func (i UpdateGoalInput) Validate() error {
-	if i.Title == nil && i.Description == nil {
+	if i.Title == nil && i.Description == nil && i.Colour == nil {
 		return errors.New("update structure has no values")
 	}
 	return nil

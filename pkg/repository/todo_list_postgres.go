@@ -112,7 +112,7 @@ func (r *TodoGoalPostgres) Update(userId, goalId int, input todo.UpdateGoalInput
     UPDATE %s tl 
     SET %s 
     WHERE tl.id IN (
-        SELECT ul.list_id FROM %s ul WHERE ul.list_id = $%d AND ul.user_id = $%d
+        SELECT ul.goal_id FROM %s ul WHERE ul.goal_id = $%d AND ul.user_id = $%d
     )`,
 		todoGoalsTable, setQuery, usersGoalsTable, argId, argId+1,
 	)

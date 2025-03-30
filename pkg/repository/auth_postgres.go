@@ -1,9 +1,12 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	"github.com/Gayana5/todo-app"
 	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
+	"strings"
 )
 
 type AuthPostgres struct {
@@ -47,4 +50,36 @@ func (r *AuthPostgres) GetInfo(id int) (todo.User, error) {
 	}
 
 	return user, nil
+}
+func (r *AuthPostgres) UpdateInfo(userId int, input todo.UpdateUserInput) error {
+	setValues := make([]string, 0)
+	args := make([]interface{}, 0)
+	argId := 1
+
+	if input.FirstName != nil {
+		setValues = append(setValues, fmt.Sprintf("first_name=$%d", argId))
+		args = append(args, *input.FirstName)
+		argId++
+	}
+	if input.SecondName != nil {
+		setValues = append(setValues, fmt.Sprintf("second_name=$%d", argId))
+		args = append(args, *input.SecondName)
+		argId++
+	}
+	if len(setValues) == 0 {
+		return errors.New("update structure has no values")
+	}
+	setQuery := strings.Join(setValues, ", ")
+	query := fmt.Sprintf(
+		"UPDATE %s SET %s WHERE id=$%d",
+		usersTable, setQuery, argId,
+	)
+
+	args = append(args, userId)
+
+	logrus.Debugf("updateQuery: %s", query)
+	logrus.Debugf("args: %v", args)
+
+	_, err := r.db.Exec(query, args...)
+	return err
 }

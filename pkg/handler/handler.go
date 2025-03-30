@@ -28,6 +28,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	api := router.Group("/api", h.userIdentity)
 	{
 		api.GET("/user", h.getInfo)
+		api.PUT("/user", h.UpdateUserInfo)
 		goals := api.Group("/goal")
 		{
 			goals.POST("/", h.createGoal)

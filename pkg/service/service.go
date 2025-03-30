@@ -11,6 +11,7 @@ type Authorization interface {
 	ParseToken(token string) (int, error)
 	GenerateCode() string
 	GetInfo(id int) (todo.User, error)
+	UpdateInfo(userId int, input todo.UpdateUserInput) error
 }
 type TodoGoal interface {
 	Create(userId int, goal todo.TodoGoal) (int, error)

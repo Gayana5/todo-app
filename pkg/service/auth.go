@@ -80,3 +80,9 @@ func (s *AuthService) GenerateCode() string {
 func (s *AuthService) GetInfo(id int) (todo.User, error) {
 	return s.repo.GetInfo(id)
 }
+func (s *AuthService) UpdateInfo(userId int, input todo.UpdateUserInput) error {
+	if err := input.Validate(); err != nil {
+		return err
+	}
+	return s.repo.UpdateInfo(userId, input)
+}

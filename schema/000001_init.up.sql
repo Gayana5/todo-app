@@ -30,10 +30,11 @@ CREATE TABLE todo_items
     user_id     int references users (id) on delete cascade not null,
     title       varchar(255) NOT NULL,
     description varchar(255),
+    goal_id     int,
     end_date    date         NOT NULL,
     start_time  time,
     end_time    time,
-    priority    boolean      DEFAULT false,
+    colour      int,
     done        boolean      DEFAULT false
 );
 -- задачи цели

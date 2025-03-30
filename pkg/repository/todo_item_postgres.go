@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Gayana5/todo-app"
 	"github.com/jmoiron/sqlx"
+	"log"
 	"strings"
 )
 
@@ -27,14 +28,15 @@ func (r *TodoItemPostgres) Create(userId int, goalId int, item todo.TodoItem) (i
 
 	var itemId int
 	createItemQuery := fmt.Sprintf(
-		`INSERT INTO %s (user_id, title, description, end_date, start_time, end_time, priority, done) 
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+		`INSERT INTO %s (user_id, title, description, goal_id, end_date, start_time, end_time, colour, done) 
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
 		todoItemsTable,
 	)
-
-	row := tx.QueryRow(createItemQuery, userId, item.Title, item.Description, item.EndDate, item.StartTime, item.EndTime, item.Priority, item.Done)
+	log.Printf("Executing query: %s", createItemQuery)
+	row := tx.QueryRow(createItemQuery, userId, item.Title, item.Description, goalId, item.EndDate, item.StartTime, item.EndTime, item.Colour, item.Done)
 
 	err = row.Scan(&itemId)
+	log.Printf("Row Scan %d", itemId)
 	if err != nil {
 		err := tx.Rollback()
 		if err != nil {
@@ -42,6 +44,7 @@ func (r *TodoItemPostgres) Create(userId int, goalId int, item todo.TodoItem) (i
 		}
 		return 0, err
 	}
+
 	if goalId != 0 {
 		createGoalItemsQuery := fmt.Sprintf("INSERT INTO %s (goal_id, item_id) VALUES ($1, $2)", goalsItemTable)
 
@@ -65,7 +68,7 @@ func (r *TodoItemPostgres) GetAll(userId, goalId int) ([]todo.TodoItem, error) {
 	var items []todo.TodoItem
 	if goalId != 0 {
 		query := fmt.Sprintf(
-			`SELECT ti.id, ti.user_id, ti.title, ti.description, ti.end_date, ti.start_time, ti.end_time, ti.priority, ti.done 
+			`SELECT ti.id, ti.user_id, ti.title, ti.description, ti.goal_id, ti.end_date, ti.start_time, ti.end_time, ti.colour, ti.done 
 				FROM %s ti INNER JOIN %s li ON li.item_id = ti.id 
 				INNER JOIN %s ul ON ul.goal_id = li.goal_id 
 				WHERE li.goal_id = $1 AND ul.user_id = $2`,
@@ -77,7 +80,7 @@ func (r *TodoItemPostgres) GetAll(userId, goalId int) ([]todo.TodoItem, error) {
 		}
 	} else {
 		query := fmt.Sprintf(
-			`SELECT id, user_id, title, description, end_date, start_time, end_time, priority, done 
+			`SELECT id, user_id, title, description, goal_id, end_date, start_time, end_time, colour, done 
      				FROM %s 
      				WHERE user_id = $1`,
 			todoItemsTable,
@@ -93,7 +96,7 @@ func (r *TodoItemPostgres) GetAll(userId, goalId int) ([]todo.TodoItem, error) {
 func (r *TodoItemPostgres) GetById(userId, itemId, goalId int) (todo.TodoItem, error) {
 	var item todo.TodoItem
 	if goalId != 0 {
-		query := fmt.Sprintf(`SELECT ti.id, ti.user_id, ti.title, ti.description, ti.end_date, ti.start_time, ti.end_time, ti.priority, ti.done
+		query := fmt.Sprintf(`SELECT ti.id, ti.user_id, ti.title, ti.description, ti.goal_id, ti.end_date, ti.start_time, ti.end_time, ti.colour, ti.done
 									FROM %s ti INNER JOIN %s li on li.item_id = ti.id
 									INNER JOIN %s ul on ul.goal_id = li.goal_id WHERE ti.id = $1 AND ul.user_id = $2`,
 			todoItemsTable, goalsItemTable, usersGoalsTable)
@@ -102,7 +105,7 @@ func (r *TodoItemPostgres) GetById(userId, itemId, goalId int) (todo.TodoItem, e
 		}
 	} else {
 		query := fmt.Sprintf(`
-		    SELECT id, user_id, title, description, end_date, start_time, end_time, priority, done
+		    SELECT id, user_id, title, description, goal_id, end_date, start_time, end_time, colour, done
 		    FROM %s
 		    WHERE id = $1 AND user_id = $2`,
 			todoItemsTable)
@@ -171,9 +174,9 @@ func (r *TodoItemPostgres) Update(userId, itemId, goalId int, input todo.UpdateI
 		args = append(args, *input.EndTime)
 		argId++
 	}
-	if input.Priority != nil {
-		setValues = append(setValues, fmt.Sprintf("priority=$%d", argId))
-		args = append(args, *input.Priority)
+	if input.Colour != nil {
+		setValues = append(setValues, fmt.Sprintf("colour=$%d", argId))
+		args = append(args, *input.Colour)
 		argId++
 	}
 	if input.Done != nil {

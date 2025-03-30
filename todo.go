@@ -23,10 +23,11 @@ type TodoItem struct {
 	UserId      int       `json:"userId" db:"user_id"`
 	Title       string    `json:"title" db:"title" binding:"required"`
 	Description string    `json:"description" db:"description"`
+	GoalId      int       `json:"goalId" db:"goal_id"`
 	EndDate     time.Time `json:"end_date" db:"end_date" binding:"required"`
 	StartTime   time.Time `json:"start_time" db:"start_time"`
 	EndTime     time.Time `json:"end_time" db:"end_time"`
-	Priority    bool      `json:"priority" db:"priority"`
+	Colour      int       `json:"colour" db:"colour"`
 	Done        bool      `json:"done" db:"done"`
 }
 type GoalsItem struct {
@@ -54,12 +55,12 @@ type UpdateItemInput struct {
 	EndDate     *time.Time `json:"end_date"`
 	StartTime   *time.Time `json:"start_time"`
 	EndTime     *time.Time `json:"end_time"`
-	Priority    *bool      `json:"priority"`
+	Colour      *int       `json:"colour"`
 	Done        *bool      `json:"done"`
 }
 
 func (i UpdateItemInput) Validate() error {
-	if i.Title == nil && i.Description == nil && i.Done == nil && i.EndDate == nil && i.StartTime == nil && i.EndTime == nil && i.Priority == nil {
+	if i.Title == nil && i.Description == nil && i.Done == nil && i.EndDate == nil && i.StartTime == nil && i.EndTime == nil && i.Colour == nil {
 		return errors.New("update structure has no values")
 	}
 	return nil

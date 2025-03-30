@@ -32,11 +32,9 @@ func (r *TodoItemPostgres) Create(userId int, goalId int, item todo.TodoItem) (i
 				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
 		todoItemsTable,
 	)
-	log.Printf("Executing query: %s", createItemQuery)
 	row := tx.QueryRow(createItemQuery, userId, item.Title, item.Description, goalId, item.EndDate, item.StartTime, item.EndTime, item.Colour, item.Done)
-
+	log.Printf("GoalId: ", goalId)
 	err = row.Scan(&itemId)
-	log.Printf("Row Scan %d", itemId)
 	if err != nil {
 		err := tx.Rollback()
 		if err != nil {

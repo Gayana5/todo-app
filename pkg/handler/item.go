@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/Gayana5/todo-app"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -24,7 +25,10 @@ func (h *Handler) createItem(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
-
+	if goalId != input.GoalId && input.GoalId != 0 {
+		goalId = input.GoalId
+	}
+	log.Printf("goalId: %v", goalId)
 	id, err := h.services.TodoItem.Create(userId, goalId, input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())

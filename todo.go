@@ -20,10 +20,10 @@ type UsersGoals struct {
 }
 type TodoItem struct {
 	Id          int       `json:"id" db:"id"`
-	UserId      int       `json:"userId" db:"user_id"`
+	UserId      int       `json:"user_id" db:"user_id"`
 	Title       string    `json:"title" db:"title" binding:"required"`
 	Description string    `json:"description" db:"description"`
-	GoalId      int       `json:"goalId" db:"goal_id"`
+	GoalId      int       `json:"goal_id" db:"goal_id"`
 	EndDate     time.Time `json:"end_date" db:"end_date" binding:"required"`
 	StartTime   time.Time `json:"start_time" db:"start_time"`
 	EndTime     time.Time `json:"end_time" db:"end_time"`

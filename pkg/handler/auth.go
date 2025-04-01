@@ -137,7 +137,7 @@ func (h *Handler) getInfo(c *gin.Context) {
 		"email":       user.Email,
 	})
 }
-func (h *Handler) UpdateUserInfo(c *gin.Context) {
+func (h *Handler) updateUserInfo(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())

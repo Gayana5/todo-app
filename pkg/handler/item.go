@@ -25,9 +25,6 @@ func (h *Handler) createItem(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	if goalId != input.GoalId && input.GoalId != 0 {
-		goalId = input.GoalId
-	}
 	log.Printf("goalId: %v", goalId)
 	id, err := h.services.TodoItem.Create(userId, goalId, input)
 	if err != nil {

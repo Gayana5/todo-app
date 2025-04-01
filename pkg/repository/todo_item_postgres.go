@@ -33,7 +33,6 @@ func (r *TodoItemPostgres) Create(userId int, goalId int, item todo.TodoItem) (i
 		todoItemsTable,
 	)
 	row := tx.QueryRow(createItemQuery, userId, item.Title, item.Description, goalId, item.EndDate, item.StartTime, item.EndTime, item.Colour, item.Done)
-	log.Printf("GoalId: ", goalId)
 	err = row.Scan(&itemId)
 	if err != nil {
 		err := tx.Rollback()
@@ -42,6 +41,7 @@ func (r *TodoItemPostgres) Create(userId int, goalId int, item todo.TodoItem) (i
 		}
 		return 0, err
 	}
+	log.Printf("ItemId: ", itemId)
 
 	if goalId != 0 {
 		createGoalItemsQuery := fmt.Sprintf("INSERT INTO %s (goal_id, item_id) VALUES ($1, $2)", goalsItemTable)

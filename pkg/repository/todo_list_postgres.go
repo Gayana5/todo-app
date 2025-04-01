@@ -76,9 +76,19 @@ func (r *TodoGoalPostgres) GetById(userId, goalId int) (todo.TodoGoal, error) {
 	return goal, nil
 }
 func (r *TodoGoalPostgres) Delete(userId, goalId int) error {
-	query := fmt.Sprintf("DELETE FROM %s tl USING %s ul WHERE ul.goal_id = $1 AND ul.user_id = $2", todoGoalsTable, usersGoalsTable)
-	_, err := r.db.Exec(query, goalId, userId)
+	deleteTaskquery := fmt.Sprintf(`DELETE FROM todo_items WHERE goal_id = $1`)
+	_, err := r.db.Exec(deleteTaskquery, goalId)
+	if err != nil {
+		return err
+	}
 
+	deleteGoalQuery := fmt.Sprintf(`
+        DELETE FROM %s 
+        WHERE id = $1 
+        AND id IN (SELECT goal_id FROM %s WHERE user_id = $2)
+    `, todoGoalsTable, usersGoalsTable)
+
+	_, err = r.db.Exec(deleteGoalQuery, goalId, userId)
 	return err
 }
 func (r *TodoGoalPostgres) Update(userId, goalId int, input todo.UpdateGoalInput) error {

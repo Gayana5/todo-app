@@ -1,9 +1,10 @@
 package handler
 
 import (
+	"database/sql"
+	"errors"
 	"github.com/Gayana5/todo-app"
 	"github.com/gin-gonic/gin"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -25,7 +26,6 @@ func (h *Handler) createItem(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	log.Printf("goalId: %v", goalId)
 	id, err := h.services.TodoItem.Create(userId, goalId, input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -57,26 +57,29 @@ func (h *Handler) getAllItems(c *gin.Context) {
 func (h *Handler) getItemById(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid user id parameter")
+		newErrorResponse(c, http.StatusBadRequest, "invalid User Id parameter")
 		return
 	}
 	goalId, err := strconv.Atoi(c.Param("goal_id"))
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, "invalid Goal Id parameter")
 		return
 	}
 	itemId, err := strconv.Atoi(c.Param("item_id"))
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, "invalid Goal Id parameter")
 		return
 	}
 
 	item, err := h.services.TodoItem.GetById(userId, itemId, goalId)
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
+	} else if errors.Is(err, sql.ErrNoRows) {
+		c.JSON(http.StatusOK, nil)
+	} else {
+		c.JSON(http.StatusOK, item)
 	}
-	c.JSON(http.StatusOK, item)
 }
 func (h *Handler) updateItem(c *gin.Context) {
 	userId, err := getUserId(c)

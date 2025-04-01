@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"database/sql"
+	"errors"
 	"github.com/Gayana5/todo-app"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -27,43 +29,41 @@ func (h *Handler) createGoal(c *gin.Context) {
 	})
 }
 
-type getAllGoalsResponse struct {
-	Data []todo.TodoGoal `json:"data"`
-}
-
 func (h *Handler) getAllGoals(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid user_id")
 		return
 	}
+
 	goals, err := h.services.TodoGoal.GetAll(userId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, getAllGoalsResponse{
-		Data: goals,
-	})
+	c.JSON(http.StatusOK, goals)
 }
 func (h *Handler) getGoalById(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid User Id")
 		return
 	}
-
 	goalId, err := strconv.Atoi(c.Param("goal_id"))
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid id")
+		newErrorResponse(c, http.StatusBadRequest, "invalid Goal Id")
 		return
 	}
 	list, err := h.services.TodoGoal.GetById(userId, goalId)
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
+	} else if errors.Is(err, sql.ErrNoRows) {
+		c.JSON(http.StatusOK, nil)
+	} else {
+		c.JSON(http.StatusOK, list)
 	}
-
-	c.JSON(http.StatusOK, list)
 }
 func (h *Handler) updateGoal(c *gin.Context) {
 	userId, err := getUserId(c)

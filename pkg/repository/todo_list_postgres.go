@@ -45,18 +45,23 @@ func (r *TodoGoalPostgres) GetAll(userId int) ([]todo.TodoGoal, error) {
 	query := fmt.Sprintf("SELECT tl.id, tl.title, tl.description, tl.colour, tl.progress FROM %s tl INNER JOIN %s ul on tl.id = ul.goal_id WHERE ul.user_id = $1",
 		todoGoalsTable, usersGoalsTable)
 	err := r.db.Select(&goals, query, userId)
+	if err != nil {
+		return goals, err
+	}
 
 	for _, goal := range goals {
 		goal, err = r.CountProgress(goal)
+		if err != nil {
+			return goals, err
+		}
 	}
 
-	return goals, err
+	return goals, nil
 }
 
 func (r *TodoGoalPostgres) GetById(userId, goalId int) (todo.TodoGoal, error) {
 	var goal todo.TodoGoal
 
-	// Запрос цели пользователя
 	query := fmt.Sprintf(`
         SELECT tl.id, tl.title, tl.description, tl.colour, tl.progress
         FROM %s tl

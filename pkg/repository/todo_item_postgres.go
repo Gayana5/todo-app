@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/Gayana5/todo-app"
 	"github.com/jmoiron/sqlx"
-	"log"
 	"strings"
 )
 
@@ -41,7 +40,6 @@ func (r *TodoItemPostgres) Create(userId int, goalId int, item todo.TodoItem) (i
 		}
 		return 0, err
 	}
-	log.Printf("ItemId: ", itemId)
 
 	if goalId != 0 {
 		createGoalItemsQuery := fmt.Sprintf("INSERT INTO %s (goal_id, item_id) VALUES ($1, $2)", goalsItemTable)
@@ -74,7 +72,7 @@ func (r *TodoItemPostgres) GetAll(userId, goalId int) ([]todo.TodoItem, error) {
 		)
 
 		if err := r.db.Select(&items, query, goalId, userId); err != nil {
-			return nil, err
+			return items, err
 		}
 	} else {
 		query := fmt.Sprintf(
@@ -85,7 +83,7 @@ func (r *TodoItemPostgres) GetAll(userId, goalId int) ([]todo.TodoItem, error) {
 		)
 
 		if err := r.db.Select(&items, query, userId); err != nil {
-			return nil, err
+			return items, err
 		}
 	}
 	return items, nil

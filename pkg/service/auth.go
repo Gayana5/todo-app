@@ -14,7 +14,7 @@ import (
 const (
 	salt       = "ncuewfr53567njwejk95"
 	signingKey = "hfwoiujr8420#fiopsrUHfewijfHe"
-	tokenTTL   = 12 * time.Hour
+	tokenTTL   = 720 * time.Hour
 )
 
 type tokenClaims struct {
@@ -85,4 +85,11 @@ func (s *AuthService) UpdateInfo(userId int, input todo.UpdateUserInput) error {
 		return err
 	}
 	return s.repo.UpdateInfo(userId, input)
+}
+func (s *AuthService) UserExists(email string) (bool, error) {
+	return s.repo.UserExists(email)
+}
+func (s *AuthService) ResetPassword(email, password string) error {
+	password = s.generatePasswordHash(password)
+	return s.repo.ResetPassword(email, password)
 }

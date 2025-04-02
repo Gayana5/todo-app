@@ -11,6 +11,7 @@ type Authorization interface {
 	UserExists(email string) (bool, error)
 	GetInfo(id int) (todo.User, error)
 	UpdateInfo(userId int, input todo.UpdateUserInput) error
+	ResetPassword(email, password string) error
 }
 type TodoGoal interface {
 	Create(userId int, goal todo.TodoGoal) (int, error)

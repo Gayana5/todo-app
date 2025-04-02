@@ -22,7 +22,14 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	{
 		auth.POST("/sign-up", h.signUp)
 		auth.POST("/sign-in", h.signIn)
-		auth.POST("/verify", h.verifyCode)
+		auth.POST("/verify-code", h.verifyRegistrationCode)
+
+		forgotPassword := router.Group("/forgot-password")
+		{
+			forgotPassword.POST("/forgot-password", h.forgotPassword)
+			forgotPassword.POST("/verify-code", h.verifyResetCode)
+			forgotPassword.PUT("/reset-password", h.resetPassword)
+		}
 	}
 
 	api := router.Group("/api", h.userIdentity)

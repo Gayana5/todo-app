@@ -2,10 +2,10 @@ package handler
 
 import (
 	"errors"
-	"github.com/Gayana5/todo-app"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
+	"time"
 )
 
 const (
@@ -14,21 +14,21 @@ const (
 )
 
 func (h *Handler) userIdentity(c *gin.Context) {
-	// Получаем header авторизации.
+
 	header := c.GetHeader(authorizationHeader)
-	// Валидируем, что header не пустой.
+
 	if header == "" {
 		newErrorResponse(c, http.StatusUnauthorized, "No authorization header") // Error 401.
 		return
 	}
-	// Валидируем, что header корректный.
+
 	headerParts := strings.Split(header, " ")
 	if len(headerParts) != 2 {
 		newErrorResponse(c, http.StatusUnauthorized, "Invalid authorization header") // Error 401. Пользователь не авторизирован
 		return
 	}
 	userId, err := h.services.Authorization.ParseToken(headerParts[1])
-	// Валидируем на наличие других возможных ошибок.
+
 	if err != nil {
 		newErrorResponse(c, http.StatusUnauthorized, err.Error())
 	}
@@ -49,15 +49,67 @@ func getUserId(c *gin.Context) (int, error) {
 	return idInt, nil
 }
 
-func validateUser(user todo.User) error {
-	if !nameRegex.MatchString(user.FirstName) {
-		return errors.New("first_name должно содержать 3-20 символов, включая буквы, цифры, _ и -")
+func validatePassword(password string) error {
+	if len(password) < 8 {
+		return errors.New("password is too short")
 	}
-	if !nameRegex.MatchString(user.SecondName) {
-		return errors.New("second_name должно содержать 3-20 символов, включая буквы, цифры, _ и -")
+
+	hasLower := false
+	hasUpper := false
+	hasDigit := false
+	hasSpecial := false
+	specialChars := "!@#$%^&*"
+
+	for _, ch := range password {
+		switch {
+		case ch >= 'a' && ch <= 'z':
+			hasLower = true
+		case ch >= 'A' && ch <= 'Z':
+			hasUpper = true
+		case ch >= '0' && ch <= '9':
+			hasDigit = true
+		case strings.ContainsRune(specialChars, ch):
+			hasSpecial = true
+		}
 	}
-	if !passwordRegex.MatchString(user.Password) {
-		return errors.New("пароль должен содержать 5-30 символов, включая буквы, цифры, _ и -")
+
+	if !(hasLower && hasUpper && hasDigit && hasSpecial) {
+		return errors.New("invalid password")
 	}
+
 	return nil
+}
+func checkCode(c *gin.Context) (VerificationCode, error) {
+	var input struct {
+		Email string `json:"email"`
+		Code  string `json:"code"`
+	}
+
+	if err := c.BindJSON(&input); err != nil {
+
+		return VerificationCode{}, errors.New("некорректные данные")
+	}
+
+	mu.Lock()
+	storedCode, exists := verificationCodes[input.Email]
+	mu.Unlock()
+
+	if !exists {
+		return VerificationCode{}, errors.New("код не существует")
+	}
+	if storedCode.ExpiresAt.Before(time.Now()) {
+		return VerificationCode{}, errors.New("срок действия кода истек")
+	}
+
+	if storedCode.Code != input.Code {
+		return VerificationCode{}, errors.New("неверный код")
+	}
+
+	storedCode.IsVerified = true
+
+	mu.Lock()
+	verificationCodes[input.Email] = storedCode
+	mu.Unlock()
+
+	return storedCode, nil
 }

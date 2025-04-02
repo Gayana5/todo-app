@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/Gayana5/todo-app"
@@ -34,9 +35,13 @@ func (r *AuthPostgres) GetUser(email, password string) (todo.User, error) {
 	return user, err
 }
 func (r *AuthPostgres) UserExists(email string) (bool, error) {
+	query := "SELECT COUNT(*) FROM users WHERE email = $1"
 	var count int
-	err := r.db.QueryRow(`SELECT COUNT(*) FROM users WHERE email = $1`, email).Scan(&count)
+	err := r.db.QueryRow(query, email).Scan(&count)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
 		return false, err
 	}
 	return count > 0, nil
@@ -81,5 +86,16 @@ func (r *AuthPostgres) UpdateInfo(userId int, input todo.UpdateUserInput) error 
 	logrus.Debugf("args: %v", args)
 
 	_, err := r.db.Exec(query, args...)
+	return err
+}
+func (r *AuthPostgres) ResetPassword(email, password string) error {
+	if password == "" {
+		return errors.New("invalid password")
+	}
+	query := fmt.Sprintf(
+		"UPDATE %s SET password_hash = $1 WHERE email = $2",
+		usersTable,
+	)
+	_, err := r.db.Exec(query, password, email)
 	return err
 }

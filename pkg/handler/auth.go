@@ -4,13 +4,24 @@ import (
 	"github.com/Gayana5/todo-app"
 	_ "github.com/Gayana5/todo-app"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
-	"regexp"
 	"sync"
 	"time"
 )
 
-var mu sync.Mutex
+type VerificationCode struct {
+	Code       string
+	ExpiresAt  time.Time
+	UserData   todo.User
+	Email      string
+	IsVerified bool
+}
+
+var (
+	verificationCodes = make(map[string]VerificationCode)
+	mu                sync.Mutex
+)
 
 func (h *Handler) signUp(c *gin.Context) {
 	var input todo.User
@@ -18,35 +29,55 @@ func (h *Handler) signUp(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Некорректные данные"})
 		return
 	}
-	/*
-			exists, err := h.repo.UserExists(input.Email)
+	err := validatePassword(input.Password)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
 
-			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка проверки пользователя"})
-				return
-			}
-			if exists {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Пользователь с такой почтой уже существует"})
-				return
-			}
+	exists, err := h.services.UserExists(input.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка проверки пользователя"})
+		return
+	}
 
-			code := h.services.Authorization.GenerateCode()
+	if exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Пользователь с такой почтой уже существует"})
+		return
+	}
 
-			if err := sendCodeToEmail(input.Email, code); err != nil {
-				log.Println("Ошибка отправки кода:", err)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось отправить код"})
-				return
-			}
+	code := h.services.Authorization.GenerateCode()
 
-			mu.Lock()
-			verificationCodes[input.Email] = VerificationCode{
-				Code:      code,
-				ExpiresAt: time.Now().Add(10 * time.Minute),
-			}
-			mu.Unlock()
-		c.JSON(http.StatusOK, gin.H{"message": "Код подтверждения отправлен на вашу почту."})
-	*/
-	id, err := h.services.Authorization.CreateUser(input)
+	if err := sendCodeToEmail(input.Email, code); err != nil {
+		log.Println("Ошибка отправки кода:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось отправить код"})
+		return
+	}
+
+	mu.Lock()
+	verificationCodes[input.Email] = VerificationCode{
+		Code:      code,
+		ExpiresAt: time.Now().Add(10 * time.Minute),
+		UserData:  input,
+		Email:     input.Email,
+	}
+	mu.Unlock()
+
+	c.JSON(http.StatusOK, gin.H{"message": "Код подтверждения отправлен на вашу почту."})
+}
+
+func (h *Handler) verifyRegistrationCode(c *gin.Context) {
+	storedCode, err := checkCode(c)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+	mu.Lock()
+	userData := storedCode.UserData
+	delete(verificationCodes, storedCode.Email)
+	mu.Unlock()
+
+	id, err := h.services.Authorization.CreateUser(userData)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -55,42 +86,6 @@ func (h *Handler) signUp(c *gin.Context) {
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"id": id,
 	})
-}
-
-func (h *Handler) verifyCode(c *gin.Context) {
-	var input struct {
-		Email string `json:"email"`
-		Code  string `json:"code"`
-	}
-
-	if err := c.BindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Некорректные данные"})
-		return
-	}
-
-	mu.Lock()
-	storedCode, exists := verificationCodes[input.Email]
-	mu.Unlock()
-
-	if !exists {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Код не существует"})
-		return
-	}
-	if storedCode.ExpiresAt.Before(time.Now()) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Срок действия кода истек"})
-		return
-	}
-
-	if storedCode.Code != input.Code {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный код"})
-		return
-	}
-
-	mu.Lock()
-	delete(verificationCodes, input.Email)
-	mu.Unlock()
-
-	c.JSON(http.StatusOK, gin.H{"message": "Регистрация успешна"})
 }
 
 type signInInput struct {
@@ -113,46 +108,4 @@ func (h *Handler) signIn(c *gin.Context) {
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"token": token,
 	})
-}
-
-var (
-	nameRegex     = regexp.MustCompile(`^[a-zA-Z0-9_-]{3,20}$`)
-	passwordRegex = regexp.MustCompile(`^[a-zA-Z0-9_-]{5,30}$`)
-)
-
-func (h *Handler) getInfo(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Пользователь не найден."})
-		return
-	}
-	user, err := h.services.Authorization.GetInfo(userId)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"first_name":  user.FirstName,
-		"second_name": user.SecondName,
-		"email":       user.Email,
-	})
-}
-func (h *Handler) updateUserInfo(c *gin.Context) {
-	userId, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		return
-	}
-	var input todo.UpdateUserInput
-	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	if err := h.services.UpdateInfo(userId, input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	c.JSON(http.StatusOK, statusResponse{"ok"})
 }

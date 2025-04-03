@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"golang.org/x/net/context"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -16,9 +17,14 @@ import (
 
 func main() {
 	logrus.SetFormatter(new(logrus.JSONFormatter))
+
 	if err := initConfig(); err != nil {
-		logrus.Fatalf("error initializing configs: %s", err.Error())
+		log.Fatalf("error initializing config: %s", err.Error())
 	}
+	//if err := godotenv.Load(); err != nil {
+	//log.Fatalf("error loading .env file: %s", err.Error())
+	//}
+
 	db, err := repository.NewPostgresDB(repository.Config{
 		Host:     viper.GetString("db.host"),
 		Port:     viper.GetString("db.port"),

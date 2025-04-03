@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	salt       = "ncuewfr53567njwejk95"
-	signingKey = "hfwoiujr8420#fiopsrUHfewijfHe"
-	tokenTTL   = 720 * time.Hour
+	SALT        = "ncuewfr53567njwejk95"
+	SIGNING_KEY = "hfwoiujr8420#fiopsrUHfewijfHe"
+	tokenTTL    = 720 * time.Hour
 )
 
 type tokenClaims struct {
@@ -47,14 +47,14 @@ func (s *AuthService) GenerateToken(email, password string) (string, error) {
 		},
 		user.Id,
 	})
-	return token.SignedString([]byte(signingKey))
+	return token.SignedString([]byte(SIGNING_KEY))
 }
 func (s *AuthService) ParseToken(accessToken string) (int, error) {
 	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("Invalid signing method")
 		}
-		return []byte(signingKey), nil
+		return []byte(SIGNING_KEY), nil
 	})
 	if err != nil {
 		return 0, err
@@ -69,7 +69,7 @@ func (s *AuthService) generatePasswordHash(password string) string {
 	hash := sha1.New()
 	hash.Write([]byte(password))
 
-	return fmt.Sprintf("%x", hash.Sum([]byte(salt)))
+	return fmt.Sprintf("%x", hash.Sum([]byte(SALT)))
 }
 
 func (s *AuthService) GenerateCode() string {

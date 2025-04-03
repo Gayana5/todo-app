@@ -57,8 +57,6 @@ func validatePassword(password string) error {
 	hasLower := false
 	hasUpper := false
 	hasDigit := false
-	hasSpecial := false
-	specialChars := "!@#$%^&*"
 
 	for _, ch := range password {
 		switch {
@@ -68,12 +66,10 @@ func validatePassword(password string) error {
 			hasUpper = true
 		case ch >= '0' && ch <= '9':
 			hasDigit = true
-		case strings.ContainsRune(specialChars, ch):
-			hasSpecial = true
 		}
 	}
 
-	if !(hasLower && hasUpper && hasDigit && hasSpecial) {
+	if !(hasLower && hasUpper && hasDigit) {
 		return errors.New("invalid password")
 	}
 

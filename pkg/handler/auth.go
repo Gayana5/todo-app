@@ -63,7 +63,7 @@ func (h *Handler) signUp(c *gin.Context) {
 	}
 	mu.Unlock()
 
-	c.JSON(http.StatusOK, gin.H{"message": "Код подтверждения отправлен на вашу почту."})
+	c.JSON(http.StatusOK, gin.H{"code": code})
 }
 
 func (h *Handler) verifyRegistrationCode(c *gin.Context) {
@@ -77,14 +77,19 @@ func (h *Handler) verifyRegistrationCode(c *gin.Context) {
 	delete(verificationCodes, storedCode.Email)
 	mu.Unlock()
 
-	id, err := h.services.Authorization.CreateUser(userData)
+	_, err = h.services.Authorization.CreateUser(userData)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
+	token, err := h.services.Authorization.GenerateToken(userData.Email, userData.Password)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error()) // Error 500. Внутренняя ошибка на сервере.
+		return
+	}
 	c.JSON(http.StatusOK, map[string]interface{}{
-		"id": id,
+		"token": token,
 	})
 }
 

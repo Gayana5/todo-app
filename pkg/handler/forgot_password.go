@@ -13,24 +13,24 @@ func (h *Handler) forgotPassword(c *gin.Context) {
 	}
 
 	if err := c.BindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Некорректные данные"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Incorrect email"})
 		return
 	}
 	exists, err := h.services.UserExists(input.Email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка проверки пользователя"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "User verification failed"})
 		return
 	}
 
 	if !exists {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Пользователь с такой почтой не существует"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not exist"})
 		return
 	}
 	code := h.services.Authorization.GenerateCode()
 
 	if err := sendCodeToEmail(input.Email, code); err != nil {
-		log.Println("Ошибка отправки кода:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось отправить код"})
+		log.Println("error while sending code:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send code"})
 		return
 	}
 
@@ -42,20 +42,20 @@ func (h *Handler) forgotPassword(c *gin.Context) {
 	}
 	mu.Unlock()
 
-	c.JSON(http.StatusOK, gin.H{"message": "Код подтверждения отправлен на вашу почту."})
+	c.JSON(http.StatusOK, statusResponse{"ok"})
 }
 
 func (h *Handler) verifyResetCode(c *gin.Context) {
 
 	storedCode, err := checkCode(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
 	if storedCode.IsVerified {
 		c.JSON(http.StatusOK, statusResponse{"ok"})
 	} else {
-		newErrorResponse(c, http.StatusBadRequest, "почта не подтверждена")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Mail not confirmed"})
 		return
 	}
 }
@@ -66,7 +66,7 @@ func (h *Handler) resetPassword(c *gin.Context) {
 		NewPassword string `json:"new_password"`
 	}
 	if err := c.BindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Некорректные данные"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Incorrect input"})
 		return
 	}
 	err := validatePassword(input.NewPassword)
@@ -78,7 +78,7 @@ func (h *Handler) resetPassword(c *gin.Context) {
 	storedCode := verificationCodes[input.Email]
 
 	if !storedCode.IsVerified {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Почта не подтверждена"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Mail not confirmed"})
 		return
 	}
 
@@ -91,5 +91,5 @@ func (h *Handler) resetPassword(c *gin.Context) {
 	delete(verificationCodes, input.Email)
 	mu.Unlock()
 
-	c.JSON(http.StatusOK, gin.H{"message": "пароль успешно изменен"})
+	c.JSON(http.StatusOK, statusResponse{"ok"})
 }

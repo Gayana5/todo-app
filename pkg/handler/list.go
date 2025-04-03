@@ -32,7 +32,7 @@ func (h *Handler) createGoal(c *gin.Context) {
 func (h *Handler) getAllGoals(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid user_id")
+		newErrorResponse(c, http.StatusBadRequest, "invalid User id")
 		return
 	}
 
@@ -73,7 +73,7 @@ func (h *Handler) updateGoal(c *gin.Context) {
 
 	goalId, err := strconv.Atoi(c.Param("goal_id"))
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid goal id")
+		newErrorResponse(c, http.StatusBadRequest, "invalid Goal Id")
 		return
 	}
 
@@ -98,7 +98,7 @@ func (h *Handler) deleteGoal(c *gin.Context) {
 
 	goalId, err := strconv.Atoi(c.Param("goal_id"))
 	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid goal id")
+		newErrorResponse(c, http.StatusBadRequest, "invalid Goal Id")
 		return
 	}
 	err = h.services.TodoGoal.Delete(userId, goalId)

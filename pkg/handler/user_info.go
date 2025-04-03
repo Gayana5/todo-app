@@ -9,7 +9,7 @@ import (
 func (h *Handler) getInfo(c *gin.Context) {
 	userId, err := getUserId(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Пользователь не найден."})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User not found"})
 		return
 	}
 	user, err := h.services.Authorization.GetInfo(userId)

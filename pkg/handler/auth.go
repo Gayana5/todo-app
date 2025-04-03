@@ -26,7 +26,7 @@ var (
 func (h *Handler) signUp(c *gin.Context) {
 	var input todo.User
 	if err := c.BindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Некорректные данные"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "incorrect data"})
 		return
 	}
 	err := validatePassword(input.Password)
@@ -37,20 +37,20 @@ func (h *Handler) signUp(c *gin.Context) {
 
 	exists, err := h.services.UserExists(input.Email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка проверки пользователя"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "user verification failed"})
 		return
 	}
 
 	if exists {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Пользователь с такой почтой уже существует"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user already exists"})
 		return
 	}
 
 	code := h.services.Authorization.GenerateCode()
 
 	if err := sendCodeToEmail(input.Email, code); err != nil {
-		log.Println("Ошибка отправки кода:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Не удалось отправить код"})
+		log.Println("failed to send code:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to send code"})
 		return
 	}
 
@@ -63,7 +63,7 @@ func (h *Handler) signUp(c *gin.Context) {
 	}
 	mu.Unlock()
 
-	c.JSON(http.StatusOK, gin.H{"code": code})
+	c.JSON(http.StatusOK, statusResponse{"ok"})
 }
 
 func (h *Handler) verifyRegistrationCode(c *gin.Context) {
@@ -85,7 +85,7 @@ func (h *Handler) verifyRegistrationCode(c *gin.Context) {
 
 	token, err := h.services.Authorization.GenerateToken(userData.Email, userData.Password)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error()) // Error 500. Внутренняя ошибка на сервере.
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, map[string]interface{}{
@@ -102,12 +102,12 @@ func (h *Handler) signIn(c *gin.Context) {
 	var input signInInput
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, err.Error()) // Error 400. Пользователь предоставил некорректные данные.
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 	token, err := h.services.Authorization.GenerateToken(input.Email, input.Password)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error()) // Error 500. Внутренняя ошибка на сервере.
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, map[string]interface{}{

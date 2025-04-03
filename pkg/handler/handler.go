@@ -26,7 +26,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 		forgotPassword := router.Group("/forgot-password")
 		{
-			forgotPassword.POST("/forgot-password", h.forgotPassword)
+			forgotPassword.POST("/send-code", h.forgotPassword)
 			forgotPassword.POST("/verify-code", h.verifyResetCode)
 			forgotPassword.PUT("/reset-password", h.resetPassword)
 		}
@@ -36,6 +36,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	{
 		api.GET("/user", h.getInfo)
 		api.PUT("/user", h.updateUserInfo)
+
 		goals := api.Group("/goal")
 		{
 			goals.POST("/", h.createGoal)

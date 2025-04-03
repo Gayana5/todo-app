@@ -18,13 +18,13 @@ func (h *Handler) userIdentity(c *gin.Context) {
 	header := c.GetHeader(authorizationHeader)
 
 	if header == "" {
-		newErrorResponse(c, http.StatusUnauthorized, "No authorization header") // Error 401.
+		newErrorResponse(c, http.StatusUnauthorized, "No authorization header")
 		return
 	}
 
 	headerParts := strings.Split(header, " ")
 	if len(headerParts) != 2 {
-		newErrorResponse(c, http.StatusUnauthorized, "Invalid authorization header") // Error 401. Пользователь не авторизирован
+		newErrorResponse(c, http.StatusUnauthorized, "Invalid authorization header")
 		return
 	}
 	userId, err := h.services.Authorization.ParseToken(headerParts[1])
@@ -39,12 +39,12 @@ func (h *Handler) userIdentity(c *gin.Context) {
 func getUserId(c *gin.Context) (int, error) {
 	id, ok := c.Get(userCtx)
 	if !ok {
-		return 0, errors.New("user id not found")
+		return 0, errors.New("User Id not found")
 	}
 
 	idInt, ok := id.(int)
 	if !ok {
-		return 0, errors.New("user id is of invalid type")
+		return 0, errors.New("User Id is of invalid type")
 	}
 	return idInt, nil
 }
@@ -83,7 +83,7 @@ func checkCode(c *gin.Context) (VerificationCode, error) {
 
 	if err := c.BindJSON(&input); err != nil {
 
-		return VerificationCode{}, errors.New("некорректные данные")
+		return VerificationCode{}, errors.New("incorrect input")
 	}
 
 	mu.Lock()
@@ -91,14 +91,14 @@ func checkCode(c *gin.Context) (VerificationCode, error) {
 	mu.Unlock()
 
 	if !exists {
-		return VerificationCode{}, errors.New("код не существует")
+		return VerificationCode{}, errors.New("code not found")
 	}
 	if storedCode.ExpiresAt.Before(time.Now()) {
-		return VerificationCode{}, errors.New("срок действия кода истек")
+		return VerificationCode{}, errors.New("code expired")
 	}
 
 	if storedCode.Code != input.Code {
-		return VerificationCode{}, errors.New("неверный код")
+		return VerificationCode{}, errors.New("incorrect code")
 	}
 
 	storedCode.IsVerified = true

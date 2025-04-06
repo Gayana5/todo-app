@@ -26,7 +26,7 @@ var (
 func (h *Handler) signUp(c *gin.Context) {
 	var input todo.User
 	if err := c.BindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "incorrect data"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "incorrect input"})
 		return
 	}
 	err := validatePassword(input.Password)

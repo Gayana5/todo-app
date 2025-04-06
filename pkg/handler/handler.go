@@ -44,6 +44,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			goals.GET("/:goal_id", h.getGoalById)
 			goals.PUT("/:goal_id", h.updateGoal)
 			goals.DELETE("/:goal_id", h.deleteGoal)
+			goals.GET("/:goal_id/askAI", h.askAI)
 
 			items := goals.Group("/:goal_id/items")
 			{

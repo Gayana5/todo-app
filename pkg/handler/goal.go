@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/Gayana5/todo-app"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -109,5 +110,27 @@ func (h *Handler) deleteGoal(c *gin.Context) {
 
 	c.JSON(http.StatusOK, statusResponse{
 		Status: "OK",
+	})
+}
+
+func (h *Handler) askAI(c *gin.Context) {
+	userId, err := getUserId(c)
+	if err != nil {
+		return
+	}
+
+	goalId, err := strconv.Atoi(c.Param("goal_id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid Goal Id")
+		return
+	}
+	advice, err := h.services.TodoGoal.AskAI(userId, goalId)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	log.Printf("advice: %v", advice)
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"advice": advice,
 	})
 }

@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/Gayana5/todo-app"
+	"github.com/Gayana5/todo-app/pkg/llm"
 	"github.com/Gayana5/todo-app/pkg/repository"
 )
 
@@ -21,6 +22,7 @@ type TodoGoal interface {
 	GetById(userId, goalId int) (todo.TodoGoal, error)
 	Delete(userId, goalId int) error
 	Update(userId, goalId int, input todo.UpdateGoalInput) error
+	AskAI(userId, goalId int) (string, error)
 }
 
 type TodoItem interface {
@@ -36,10 +38,10 @@ type Service struct {
 	TodoItem
 }
 
-func NewService(repos *repository.Repository) *Service {
+func NewService(repos *repository.Repository, ai llm.LLM) *Service {
 	return &Service{
 		Authorization: NewAuthService(repos.Authorization),
-		TodoGoal:      NewTodoListService(repos.TodoGoal),
+		TodoGoal:      NewTodoGoalService(repos.TodoGoal, ai),
 		TodoItem:      NewTodoItemService(repos.TodoItem, repos.TodoGoal),
 	}
 }

@@ -9,8 +9,8 @@ import (
 const (
 	SMPT_HOST     = "smtp.mail.ru"
 	SMTP_PORT     = 587
-	SMTP_USERNAME = "whattodo.confirm@mail.ru"
-	SMTP_PASSWORD = "gPHcX4wNZbHSYdZsi3WX"
+	SMTP_USERNAME =
+	SMTP_PASSWORD =
 )
 
 func sendCodeToEmail(to string, code string) error {

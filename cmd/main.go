@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/Gayana5/todo-app"
 	"github.com/Gayana5/todo-app/pkg/handler"
+	"github.com/Gayana5/todo-app/pkg/llm"
 	"github.com/Gayana5/todo-app/pkg/repository"
 	"github.com/Gayana5/todo-app/pkg/service"
 	_ "github.com/lib/pq"
@@ -36,8 +37,10 @@ func main() {
 	if err != nil {
 		logrus.Fatalf("error initializing DataBase: %s", err.Error())
 	}
+
+	llmClient := llm.NewOllamaClient("gemma:2b")
 	repos := repository.NewRepository(db)
-	services := service.NewService(repos)
+	services := service.NewService(repos, llmClient)
 	handlers := handler.NewHandler(services)
 
 	srv := new(todo.Server)

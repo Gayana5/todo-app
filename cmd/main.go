@@ -38,7 +38,7 @@ func main() {
 		logrus.Fatalf("error initializing DataBase: %s", err.Error())
 	}
 
-	llmClient := llm.NewOllamaClient("gemma:2b")
+	llmClient := llm.NewLLMClient()
 	repos := repository.NewRepository(db)
 	services := service.NewService(repos, llmClient)
 	handlers := handler.NewHandler(services)
@@ -55,7 +55,7 @@ func main() {
 
 	logrus.Print("TodoApp Shutting Down")
 
-	if srv.Shutdown(context.Background()); err != nil {
+	if err = srv.Shutdown(context.Background()); err != nil {
 		logrus.Errorf("error occured on server shutting down: %s", err.Error())
 	}
 	if err := db.Close(); err != nil {

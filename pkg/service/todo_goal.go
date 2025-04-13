@@ -4,7 +4,6 @@ import (
 	"github.com/Gayana5/todo-app"
 	"github.com/Gayana5/todo-app/pkg/llm"
 	"github.com/Gayana5/todo-app/pkg/repository"
-	"log"
 )
 
 type TodoGoalService struct {
@@ -44,7 +43,7 @@ func (s *TodoGoalService) AskAI(userId, goalId int) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	message, err := s.ai.GetAdvice(goal.Title, goal.Description)
+	message, err := s.ai.SendToHyperbolic(goal.Title, goal.Description)
 	if err != nil {
 		return "", err
 	}

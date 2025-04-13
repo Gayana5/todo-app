@@ -4,13 +4,14 @@ import (
 	"crypto/tls"
 	"fmt"
 	"gopkg.in/gomail.v2"
+	"os"
 )
 
 const (
-	SMPT_HOST     = "smtp.mail.ru"
-	SMTP_PORT     = 587
-	SMTP_USERNAME =
-	SMTP_PASSWORD =
+	SMPT_HOST = "smtp.mail.ru"
+	SMTP_PORT = 587
+	SMTP_USERNAME
+	SMTP_PASSWORD
 )
 
 func sendCodeToEmail(to string, code string) error {
@@ -22,7 +23,7 @@ func sendCodeToEmail(to string, code string) error {
 	m.SetBody("text/plain", fmt.Sprintf("Your onetime verification code: %s", code))
 
 	d := gomail.NewDialer(SMPT_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD)
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: true} // Игнорируем проверку сертификата
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
 	if err := d.DialAndSend(m); err != nil {
 		return fmt.Errorf("error sending email: %w", err)

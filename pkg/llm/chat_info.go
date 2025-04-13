@@ -1,18 +1,12 @@
 package llm
 
-type ChatMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+type LLMClient struct {
 }
 
-type OllamaClient struct {
-	Model string
-}
-
-func NewOllamaClient(model string) *OllamaClient {
-	return &OllamaClient{Model: model}
+func NewLLMClient() *LLMClient {
+	return &LLMClient{}
 }
 
 type LLM interface {
-	GetAdvice(title, description string) (string, error)
+	SendToHyperbolic(title, description string) (string, error)
 }

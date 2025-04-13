@@ -1,4 +1,3 @@
-#version: '3.9'
 
 services:
   backend:
@@ -10,10 +9,8 @@ services:
       - ./configs:/app/configs:ro
     depends_on:
       - postgres
-      - ollama
     environment:
       - DB_PASSWORD=${DB_PASSWORD}
-      - LLM_URL=http://ollama:11434
     networks:
       - todo-net
 
@@ -30,25 +27,9 @@ services:
     networks:
       - todo-net
 
-  ollama:
-    image: ollama/ollama
-    container_name: ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama-data:/root/.ollama
-    networks:
-      - todo-net
-    dns:
-      - 8.8.8.8
-    restart: unless-stopped
-    environment:
-      - OLLAMA_HOST=0.0.0.0:11434
-
 
 volumes:
   postgres_data:
-  ollama-data:
 
 networks:
   todo-net:

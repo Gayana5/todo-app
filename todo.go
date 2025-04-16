@@ -6,18 +6,15 @@ import (
 )
 
 type TodoGoal struct {
-	Id          int    `json:"id" db:"id"`
-	Title       string `json:"title" db:"title" binding:"required"`
-	Description string `json:"description" db:"description"`
-	Colour      int    `json:"colour" db:"colour" binding:"required"`
-	Progress    int    `json:"progress" db:"progress"`
+	Id             int    `json:"id" db:"id"`
+	Title          string `json:"title" db:"title" binding:"required"`
+	Description    string `json:"description" db:"description"`
+	Colour         int    `json:"colour" db:"colour" binding:"required"`
+	Progress       int    `json:"progress" db:"progress"`
+	CompletedTasks int    `json:"completed_tasks" db:"completed_tasks"`
+	TotalTasks     int    `json:"total_tasks" db:"total_tasks"`
 }
 
-type UsersGoals struct {
-	Id     int
-	UserId int
-	ListId int
-}
 type TodoItem struct {
 	Id          int       `json:"id" db:"id"`
 	UserId      int       `json:"user_id" db:"user_id"`
@@ -29,11 +26,6 @@ type TodoItem struct {
 	EndTime     time.Time `json:"end_time" db:"end_time"`
 	Colour      int       `json:"colour" db:"colour"`
 	Done        bool      `json:"done" db:"done"`
-}
-type GoalsItem struct {
-	Id     int `json:"id" db:"id"`
-	ItemId int `json:"item_id" db:"item_id"`
-	GoalId int `json:"goal_id" db:"goal_id"`
 }
 
 type UpdateGoalInput struct {

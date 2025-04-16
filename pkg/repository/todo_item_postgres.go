@@ -15,7 +15,6 @@ func NewTodoItemPostgres(db *sqlx.DB) *TodoItemPostgres {
 	return &TodoItemPostgres{db: db}
 }
 func (r *TodoItemPostgres) Create(userId int, goalId int, item todo.TodoItem) (int, error) {
-
 	if r.db == nil {
 		return 0, fmt.Errorf("database connection is nil")
 	}
@@ -28,7 +27,7 @@ func (r *TodoItemPostgres) Create(userId int, goalId int, item todo.TodoItem) (i
 	var itemId int
 	createItemQuery := fmt.Sprintf(
 		`INSERT INTO %s (user_id, title, description, goal_id, end_date, start_time, end_time, colour, done) 
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
 		todoItemsTable,
 	)
 	row := tx.QueryRow(createItemQuery, userId, item.Title, item.Description, goalId, item.EndDate, item.StartTime, item.EndTime, item.Colour, item.Done)
@@ -42,9 +41,23 @@ func (r *TodoItemPostgres) Create(userId int, goalId int, item todo.TodoItem) (i
 	}
 
 	if goalId != 0 {
+		// Добавляем связь задачи с целью
 		createGoalItemsQuery := fmt.Sprintf("INSERT INTO %s (goal_id, item_id) VALUES ($1, $2)", goalsItemTable)
-
 		_, err = tx.Exec(createGoalItemsQuery, goalId, itemId)
+		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				return 0, err
+			}
+			return 0, err
+		}
+
+		// Обновляем total_tasks в цели
+		updateGoalQuery := fmt.Sprintf(
+			"UPDATE %s SET total_tasks = total_tasks + 1 WHERE id = $1",
+			todoGoalsTable,
+		)
+		_, err = tx.Exec(updateGoalQuery, goalId)
 		if err != nil {
 			err := tx.Rollback()
 			if err != nil {
@@ -185,23 +198,65 @@ func (r *TodoItemPostgres) Update(userId, itemId, goalId int, input todo.UpdateI
 		return nil
 	}
 
-	setQuery := strings.Join(setValues, ", ")
-
-	if goalId != 0 {
-		query := fmt.Sprintf(
-			`UPDATE %s ti SET %s FROM %s li, %s ul WHERE ti.id = li.item_id AND li.goal_id = ul.goal_id AND ul.user_id = $%d AND ti.id = $%d`,
-			todoItemsTable, setQuery, goalsItemTable, usersGoalsTable, argId, argId+1,
-		)
-		args = append(args, userId, itemId)
-		_, err := r.db.Exec(query, args...)
-		return err
-	} else {
-		query := fmt.Sprintf(
-			`UPDATE %s ti SET %s WHERE ti.user_id = $%d AND ti.id = $%d`,
-			todoItemsTable, setQuery, argId, argId+1,
-		)
-		args = append(args, userId, itemId)
-		_, err := r.db.Exec(query, args...)
+	tx, err := r.db.Begin()
+	if err != nil {
 		return err
 	}
+
+	// Получаем текущий статус и цель задачи
+	var currentDone bool
+	var currentGoalId int
+	err = tx.QueryRow(
+		fmt.Sprintf("SELECT done, goal_id FROM %s WHERE id = $1 AND user_id = $2", todoItemsTable),
+		itemId, userId,
+	).Scan(&currentDone, &currentGoalId)
+	if err != nil {
+		err := tx.Rollback()
+		if err != nil {
+			return err
+		}
+		return err
+	}
+
+	// Выполняем обновление задачи
+	setQuery := strings.Join(setValues, ", ")
+	query := fmt.Sprintf(
+		`UPDATE %s ti SET %s WHERE ti.id = $%d AND ti.user_id = $%d`,
+		todoItemsTable, setQuery, argId, argId+1,
+	)
+	args = append(args, itemId, userId)
+
+	_, err = tx.Exec(query, args...)
+	if err != nil {
+		err := tx.Rollback()
+		if err != nil {
+			return err
+		}
+		return err
+	}
+
+	if input.Done != nil {
+		newDone := *input.Done
+		if newDone != currentDone && currentGoalId != 0 {
+			delta := 1
+			if !newDone {
+				delta = -1
+			}
+
+			updateGoalQuery := fmt.Sprintf(
+				"UPDATE %s SET completed_tasks = completed_tasks + $1 WHERE id = $2",
+				todoGoalsTable,
+			)
+			_, err = tx.Exec(updateGoalQuery, delta, currentGoalId)
+			if err != nil {
+				err := tx.Rollback()
+				if err != nil {
+					return err
+				}
+				return err
+			}
+		}
+	}
+
+	return tx.Commit()
 }

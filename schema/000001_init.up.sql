@@ -10,16 +10,17 @@ CREATE TABLE users
 -- цель
 CREATE TABLE todo_goals
 (
-    id          serial       PRIMARY KEY NOT NULL UNIQUE,
-    title       varchar(255) NOT NULL,
-    description varchar(255),
-    colour      INT,
-    progress    INT         default 0
+    id              serial       PRIMARY KEY NOT NULL UNIQUE,
+    title           varchar(255) NOT NULL,
+    description     varchar(255),
+    colour          INT,
+    completed_tasks INT         default 0,
+    total_tasks     INT         default 0
 );
 -- цели пользователя
 CREATE TABLE users_goals
 (
-    id serial not null unique,
+    id      serial not null unique,
     user_id int references users (id) on delete cascade not null,
     goal_id int references todo_goals (id) on delete cascade not null
 );

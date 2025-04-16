@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"gopkg.in/gomail.v2"
-	"os"
 )
 
 const (

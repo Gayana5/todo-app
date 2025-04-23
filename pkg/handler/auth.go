@@ -26,31 +26,31 @@ var (
 func (h *Handler) signUp(c *gin.Context) {
 	var input todo.User
 	if err := c.BindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "incorrect input"})
+		newErrorResponse(c, http.StatusBadRequest, "invalid input body")
 		return
 	}
 	err := validatePassword(input.Password)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, "incorrect password")
 		return
 	}
 
 	exists, err := h.services.UserExists(input.Email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "user verification failed"})
+		newErrorResponse(c, http.StatusBadRequest, "user verification failed")
 		return
 	}
 
 	if exists {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "user already exists"})
+		newErrorResponse(c, http.StatusBadRequest, "user already exists")
 		return
 	}
 
 	code := h.services.Authorization.GenerateCode()
 
-	if err := sendCodeToEmail(input.Email, code); err != nil {
+	if err := h.services.SendCodeToEmail(input.Email, code); err != nil {
 		log.Println("failed to send code:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to send code"})
+		newErrorResponse(c, http.StatusBadRequest, "failed to send code")
 		return
 	}
 

@@ -6,7 +6,6 @@ import (
 	"github.com/Gayana5/todo-app"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
-	"log"
 	"strings"
 )
 
@@ -54,7 +53,6 @@ func (r *TodoGoalPostgres) GetAll(userId int) ([]todo.TodoGoal, error) {
 		if goal.TotalTasks != 0 {
 			goal.Progress = int((float64(goal.CompletedTasks) / float64(goal.TotalTasks)) * 100)
 		}
-		log.Printf("Completed: %s, Total: %s, Progress: %s", goal.CompletedTasks, goal.TotalTasks, goal.Progress)
 	}
 
 	return goals, nil
@@ -78,7 +76,6 @@ func (r *TodoGoalPostgres) GetById(userId, goalId int) (todo.TodoGoal, error) {
 		goal.Progress = int((float64(goal.CompletedTasks) / float64(goal.TotalTasks)) * 100)
 
 	}
-	log.Printf("Completed: %s, Total: %s, Progress: %s", goal.CompletedTasks, goal.TotalTasks, goal.Progress)
 	return goal, nil
 }
 func (r *TodoGoalPostgres) Delete(userId, goalId int) error {

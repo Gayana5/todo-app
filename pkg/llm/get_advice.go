@@ -16,7 +16,7 @@ func (c *LLMClient) SendToHyperbolic(title, description string) (string, error) 
 		"messages": []map[string]string{
 			{
 				"role":    "user",
-				"content": fmt.Sprintf("Give me advice on how to achieve the goal, 4 sentences max: '%s'. Description: '%s'. Answer in the language of the goal and description.", title, description),
+				"content": fmt.Sprintf("Give me advice on how to achieve the goal, 4 sentences max: '%s'. Description: '%s'.", title, description),
 			},
 		},
 		"model":       "Qwen/Qwen2.5-72B-Instruct",

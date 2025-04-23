@@ -1,3 +1,5 @@
+//go:generate mockgen -source=service.go -destination=mocks/mock.go
+
 package service
 
 import (
@@ -15,6 +17,7 @@ type Authorization interface {
 	UpdateInfo(userId int, input todo.UpdateUserInput) error
 	UserExists(email string) (bool, error)
 	ResetPassword(email, password string) error
+	SendCodeToEmail(to string, code string) error
 }
 type TodoGoal interface {
 	Create(userId int, goal todo.TodoGoal) (int, error)

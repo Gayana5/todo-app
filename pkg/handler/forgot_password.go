@@ -28,7 +28,7 @@ func (h *Handler) forgotPassword(c *gin.Context) {
 	}
 	code := h.services.Authorization.GenerateCode()
 
-	if err := sendCodeToEmail(input.Email, code); err != nil {
+	if err := h.services.SendCodeToEmail(input.Email, code); err != nil {
 		log.Println("error while sending code:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send code"})
 		return

@@ -15,7 +15,7 @@ type TodoGoal struct {
 	TotalTasks     int    `json:"total_tasks" db:"total_tasks"`
 }
 
-type TodoItem struct {
+type TodoTask struct {
 	Id          int       `json:"id" db:"id"`
 	UserId      int       `json:"user_id" db:"user_id"`
 	Title       string    `json:"title" db:"title" binding:"required"`
@@ -41,7 +41,7 @@ func (i UpdateGoalInput) Validate() error {
 	return nil
 }
 
-type UpdateItemInput struct {
+type UpdateTaskInput struct {
 	Title       *string    `json:"title"`
 	Description *string    `json:"description"`
 	EndDate     *time.Time `json:"end_date"`
@@ -51,7 +51,7 @@ type UpdateItemInput struct {
 	Done        *bool      `json:"done"`
 }
 
-func (i UpdateItemInput) Validate() error {
+func (i UpdateTaskInput) Validate() error {
 	if i.Title == nil && i.Description == nil && i.Done == nil && i.EndDate == nil && i.StartTime == nil && i.EndTime == nil && i.Colour == nil {
 		return errors.New("update structure has no values")
 	}

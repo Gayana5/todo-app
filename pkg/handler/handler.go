@@ -46,13 +46,13 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			goals.DELETE("/:goal_id", h.deleteGoal)
 			goals.GET("/:goal_id/askAI", h.askAI)
 
-			items := goals.Group("/:goal_id/items")
+			tasks := goals.Group("/:goal_id/tasks")
 			{
-				items.POST("/", h.createItem)
-				items.GET("/", h.getAllItems)
-				items.GET("/:item_id", h.getItemById)
-				items.PUT("/:item_id", h.updateItem)
-				items.DELETE("/:item_id", h.deleteItem)
+				tasks.POST("/", h.createTask)
+				tasks.GET("/", h.getAllTasks)
+				tasks.GET("/:task_id", h.getTaskById)
+				tasks.PUT("/:task_id", h.updateTask)
+				tasks.DELETE("/:task_id", h.deleteTask)
 			}
 		}
 	}

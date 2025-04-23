@@ -25,7 +25,7 @@ CREATE TABLE users_goals
     goal_id int references todo_goals (id) on delete cascade not null
 );
 -- задача
-CREATE TABLE todo_items
+CREATE TABLE todo_tasks
 (
     id          serial       PRIMARY KEY NOT NULL UNIQUE,
     user_id     int references users (id) on delete cascade not null,
@@ -39,9 +39,9 @@ CREATE TABLE todo_items
     done        boolean      DEFAULT false
 );
 -- задачи цели
-CREATE TABLE goal_items
+CREATE TABLE goal_tasks
 (
     id          serial       PRIMARY KEY NOT NULL UNIQUE,
-    item_id     int references todo_items (id) on delete cascade not null,
+    task_id     int references todo_tasks (id) on delete cascade not null,
     goal_id     int references todo_goals (id) on delete cascade not null
 );

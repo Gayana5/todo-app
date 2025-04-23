@@ -276,98 +276,98 @@ func (mr *MockTodoGoalMockRecorder) Update(userId, goalId, input interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockTodoGoal)(nil).Update), userId, goalId, input)
 }
 
-// MockTodoItem is a mock of TodoItem interface.
-type MockTodoItem struct {
+// MockTodoTask is a mock of TodoTask interface.
+type MockTodoTask struct {
 	ctrl     *gomock.Controller
-	recorder *MockTodoItemMockRecorder
+	recorder *MockTodoTaskMockRecorder
 }
 
-// MockTodoItemMockRecorder is the mock recorder for MockTodoItem.
-type MockTodoItemMockRecorder struct {
-	mock *MockTodoItem
+// MockTodoTaskMockRecorder is the mock recorder for MockTodoTask.
+type MockTodoTaskMockRecorder struct {
+	mock *MockTodoTask
 }
 
-// NewMockTodoItem creates a new mock instance.
-func NewMockTodoItem(ctrl *gomock.Controller) *MockTodoItem {
-	mock := &MockTodoItem{ctrl: ctrl}
-	mock.recorder = &MockTodoItemMockRecorder{mock}
+// NewMockTodoTask creates a new mock instance.
+func NewMockTodoTask(ctrl *gomock.Controller) *MockTodoTask {
+	mock := &MockTodoTask{ctrl: ctrl}
+	mock.recorder = &MockTodoTaskMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockTodoItem) EXPECT() *MockTodoItemMockRecorder {
+func (m *MockTodoTask) EXPECT() *MockTodoTaskMockRecorder {
 	return m.recorder
 }
 
 // Create mocks base method.
-func (m *MockTodoItem) Create(userId, goalId int, item todo.TodoItem) (int, error) {
+func (m *MockTodoTask) Create(userId, goalId int, task todo.TodoTask) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", userId, goalId, item)
+	ret := m.ctrl.Call(m, "Create", userId, goalId, task)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockTodoItemMockRecorder) Create(userId, goalId, item interface{}) *gomock.Call {
+func (mr *MockTodoTaskMockRecorder) Create(userId, goalId, task interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTodoItem)(nil).Create), userId, goalId, item)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTodoTask)(nil).Create), userId, goalId, task)
 }
 
 // Delete mocks base method.
-func (m *MockTodoItem) Delete(userId, itemId, goalId int) error {
+func (m *MockTodoTask) Delete(userId, taskId, goalId int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", userId, itemId, goalId)
+	ret := m.ctrl.Call(m, "Delete", userId, taskId, goalId)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockTodoItemMockRecorder) Delete(userId, itemId, goalId interface{}) *gomock.Call {
+func (mr *MockTodoTaskMockRecorder) Delete(userId, taskId, goalId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockTodoItem)(nil).Delete), userId, itemId, goalId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockTodoTask)(nil).Delete), userId, taskId, goalId)
 }
 
 // GetAll mocks base method.
-func (m *MockTodoItem) GetAll(userId, goalId int) ([]todo.TodoItem, error) {
+func (m *MockTodoTask) GetAll(userId, goalId int) ([]todo.TodoTask, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll", userId, goalId)
-	ret0, _ := ret[0].([]todo.TodoItem)
+	ret0, _ := ret[0].([]todo.TodoTask)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAll indicates an expected call of GetAll.
-func (mr *MockTodoItemMockRecorder) GetAll(userId, goalId interface{}) *gomock.Call {
+func (mr *MockTodoTaskMockRecorder) GetAll(userId, goalId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockTodoItem)(nil).GetAll), userId, goalId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockTodoTask)(nil).GetAll), userId, goalId)
 }
 
 // GetById mocks base method.
-func (m *MockTodoItem) GetById(userId, itemId, goalId int) (todo.TodoItem, error) {
+func (m *MockTodoTask) GetById(userId, taskId, goalId int) (todo.TodoTask, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetById", userId, itemId, goalId)
-	ret0, _ := ret[0].(todo.TodoItem)
+	ret := m.ctrl.Call(m, "GetById", userId, taskId, goalId)
+	ret0, _ := ret[0].(todo.TodoTask)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetById indicates an expected call of GetById.
-func (mr *MockTodoItemMockRecorder) GetById(userId, itemId, goalId interface{}) *gomock.Call {
+func (mr *MockTodoTaskMockRecorder) GetById(userId, taskId, goalId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockTodoItem)(nil).GetById), userId, itemId, goalId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockTodoTask)(nil).GetById), userId, taskId, goalId)
 }
 
 // Update mocks base method.
-func (m *MockTodoItem) Update(userId, itemId, goalId int, input todo.UpdateItemInput) error {
+func (m *MockTodoTask) Update(userId, taskId, goalId int, input todo.UpdateTaskInput) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", userId, itemId, goalId, input)
+	ret := m.ctrl.Call(m, "Update", userId, taskId, goalId, input)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockTodoItemMockRecorder) Update(userId, itemId, goalId, input interface{}) *gomock.Call {
+func (mr *MockTodoTaskMockRecorder) Update(userId, taskId, goalId, input interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockTodoItem)(nil).Update), userId, itemId, goalId, input)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockTodoTask)(nil).Update), userId, taskId, goalId, input)
 }

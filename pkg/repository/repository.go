@@ -21,23 +21,23 @@ type TodoGoal interface {
 	Update(userId, goalId int, input todo.UpdateGoalInput) error
 }
 
-type TodoItem interface {
-	Create(userId int, goalId int, item todo.TodoItem) (int, error)
-	GetAll(userId, goalId int) ([]todo.TodoItem, error)
-	GetById(userId, itemId, goalId int) (todo.TodoItem, error)
-	Delete(userId, itemId, goalId int) error
-	Update(userId, itemId, goalId int, input todo.UpdateItemInput) error
+type TodoTask interface {
+	Create(userId int, goalId int, task todo.TodoTask) (int, error)
+	GetAll(userId, goalId int) ([]todo.TodoTask, error)
+	GetById(userId, taskId, goalId int) (todo.TodoTask, error)
+	Delete(userId, taskId, goalId int) error
+	Update(userId, taskId, goalId int, input todo.UpdateTaskInput) error
 }
 type Repository struct {
 	Authorization
 	TodoGoal
-	TodoItem
+	TodoTask
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
 		Authorization: NewAuthPostgres(db),
 		TodoGoal:      NewTodoGoalPostgres(db),
-		TodoItem:      NewTodoItemPostgres(db),
+		TodoTask:      NewTodoTaskPostgres(db),
 	}
 }

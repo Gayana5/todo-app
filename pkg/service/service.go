@@ -28,23 +28,23 @@ type TodoGoal interface {
 	AskAI(userId, goalId int) (string, error)
 }
 
-type TodoItem interface {
-	Create(userId, goalId int, item todo.TodoItem) (int, error)
-	GetAll(userId, goalId int) ([]todo.TodoItem, error)
-	GetById(userId, itemId, goalId int) (todo.TodoItem, error)
-	Delete(userId, itemId, goalId int) error
-	Update(userId, itemId, goalId int, input todo.UpdateItemInput) error
+type TodoTask interface {
+	Create(userId, goalId int, task todo.TodoTask) (int, error)
+	GetAll(userId, goalId int) ([]todo.TodoTask, error)
+	GetById(userId, taskId, goalId int) (todo.TodoTask, error)
+	Delete(userId, taskId, goalId int) error
+	Update(userId, taskId, goalId int, input todo.UpdateTaskInput) error
 }
 type Service struct {
 	Authorization
 	TodoGoal
-	TodoItem
+	TodoTask
 }
 
 func NewService(repos *repository.Repository, ai llm.LLM) *Service {
 	return &Service{
 		Authorization: NewAuthService(repos.Authorization),
 		TodoGoal:      NewTodoGoalService(repos.TodoGoal, ai),
-		TodoItem:      NewTodoItemService(repos.TodoItem, repos.TodoGoal),
+		TodoTask:      NewTodoTaskService(repos.TodoTask, repos.TodoGoal),
 	}
 }

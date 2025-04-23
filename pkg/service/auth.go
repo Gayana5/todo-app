@@ -2,19 +2,26 @@ package service
 
 import (
 	"crypto/sha1"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"github.com/Gayana5/todo-app"
 	"github.com/Gayana5/todo-app/pkg/repository"
 	"github.com/dgrijalva/jwt-go"
+	"gopkg.in/gomail.v2"
 	"math/rand"
 	"time"
 )
 
 const (
-	SALT        =
-	SIGNING_KEY =
+	SALT        = "ncuewfr53567njwejk95"
+	SIGNING_KEY = "hfwoiujr8420#fiopsrUHfewijfHe"
 	tokenTTL    = 720 * time.Hour
+
+	SMPT_HOST     = "smtp.mail.ru"
+	SMTP_PORT     = 587
+	SMTP_USERNAME = "whattodo.confirm@mail.ru"
+	SMTP_PASSWORD = "gPHcX4wNZbHSYdZsi3WX"
 )
 
 type tokenClaims struct {
@@ -92,4 +99,20 @@ func (s *AuthService) UserExists(email string) (bool, error) {
 func (s *AuthService) ResetPassword(email, password string) error {
 	password = s.generatePasswordHash(password)
 	return s.repo.ResetPassword(email, password)
+}
+
+func (s *AuthService) SendCodeToEmail(to string, code string) error {
+	m := gomail.NewMessage()
+	m.SetHeader("From", SMTP_USERNAME)
+	m.SetHeader("To", to)
+	m.SetHeader("Subject", "WhatToDo - Confirmation Code")
+	m.SetBody("text/plain", fmt.Sprintf("Your onetime verification code: %s", code))
+
+	d := gomail.NewDialer(SMPT_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD)
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+
+	if err := d.DialAndSend(m); err != nil {
+		return fmt.Errorf("error sending email: %w", err)
+	}
+	return nil
 }

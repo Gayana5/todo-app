@@ -9,8 +9,8 @@ const (
 	usersTable      = "users"
 	todoGoalsTable  = "todo_goals"
 	usersGoalsTable = "users_goals"
-	todoItemsTable  = "todo_items"
-	goalsItemTable  = "goal_items"
+	todoTasksTable  = "todo_tasks"
+	goalsTaskTable  = "goal_tasks"
 )
 
 type Config struct {
